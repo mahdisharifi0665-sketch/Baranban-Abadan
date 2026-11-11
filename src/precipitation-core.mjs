@@ -81,3 +81,27 @@ export function ensembleExceedance(members, window, thresholdMm, config) {
     comparison:">="
   };
 }
+
+
+export function ensembleDailyExceedance(memberTotals, thresholdMm, config) {
+  if (!Array.isArray(memberTotals) || memberTotals.length===0) {
+    return {probability:null,reason:"no_members",validMembers:0,totalMembers:Array.isArray(memberTotals)?memberTotals.length:0};
+  }
+  if (!Number.isFinite(thresholdMm) || thresholdMm<0) {
+    return {probability:null,reason:"invalid_threshold",validMembers:0,totalMembers:memberTotals.length};
+  }
+  if (!config || !Number.isInteger(config.minValidMembers) || config.minValidMembers<1 ||
+      !Number.isFinite(config.minMemberCoverage) || config.minMemberCoverage<=0 || config.minMemberCoverage>1) {
+    return {probability:null,reason:"coverage_policy_not_configured",validMembers:0,totalMembers:memberTotals.length};
+  }
+  const valid=memberTotals.filter(v=>Number.isFinite(v)&&v>=0);
+  const totalMembers=memberTotals.length;
+  const validMembers=valid.length;
+  const requiredMembers=Math.max(config.minValidMembers,Math.ceil(totalMembers*config.minMemberCoverage));
+  if (validMembers<requiredMembers) {
+    return {probability:null,reason:"insufficient_valid_members",validMembers,totalMembers,requiredMembers};
+  }
+  const thresholdScaled=Math.round(thresholdMm*1_000_000);
+  const exceedances=valid.filter(v=>Math.round(v*1_000_000)>=thresholdScaled).length;
+  return {probability:exceedances/validMembers,exceedances,validMembers,totalMembers,requiredMembers,thresholdMm,comparison:">="};
+}
