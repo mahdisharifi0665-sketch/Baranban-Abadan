@@ -4,9 +4,11 @@ import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
 const schema = JSON.parse(fs.readFileSync("schemas/forecast-record.schema.json", "utf8"));
+const observationSchema = JSON.parse(fs.readFileSync("schemas/rain-observation.schema.json", "utf8"));
 const ajv = new Ajv2020({allErrors:true, strict:true, allowUnionTypes:true});
 addFormats(ajv);
 const validate = ajv.compile(schema);
+const validateObservation = ajv.compile(observationSchema);
 
 const valid = {
   schema_version:"1.0.0",
@@ -47,4 +49,14 @@ assert.equal(validateSemantics(valid),true);
 assert.equal(validateSemantics({...valid,valid_end_utc:valid.valid_start_utc}),false,"zero-duration interval must fail semantic validation");
 assert.equal(validateSemantics({...member,ensemble_member_count_valid:51}),false,"valid ensemble count cannot exceed total count");
 assert.equal(validateSemantics({...member,ensemble_member_count_total:0}),false,"ensemble total count must be positive");
-console.log("PASS: schema compiles; structural and semantic time/ensemble-count checks passed; invalid cases rejected.");
+const observation = {
+  schema_version:"1.0.0", observation_id:"schema-test-001",
+  station:{station_id:"ABADAN-TEST",name:"Test gauge",latitude:28.0794,longitude:51.7694,elevation_m:null,timezone:"Asia/Tehran",distance_from_abadan_km:0},
+  source:{provider:"schema fixture",source_type:"personal_gauge",source_reference:null,instrument:"manual"},
+  observed_start_utc:"2026-11-11T00:00:00Z",observed_end_utc:"2026-11-11T01:00:00Z",retrieved_at_utc:"2026-11-11T01:05:00Z",
+  value_mm:0,measurement_kind:"interval_total",quality_status:"raw",quality_flags:[]
+};
+assert.equal(validateObservation(observation),true,JSON.stringify(validateObservation.errors));
+assert.equal(validateObservation({...observation,value_mm:-1}),false,"negative observed rainfall must fail");
+assert.equal(validateObservation({...observation,station:{...observation.station,longitude:181}}),false,"invalid station longitude must fail");
+console.log("PASS: forecast and rain-observation schemas compile; structural and semantic regression checks passed.");
