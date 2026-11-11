@@ -3,11 +3,12 @@ import {buildVerificationPairs,scoreVerificationPairs,selectForecastArtifactsFor
 const times=[];for(let i=1;i<=24;i++){const d=new Date(Date.parse("2026-11-10T00:00:00Z")+i*3600000);times.push(d.toISOString().slice(0,16));}
 const values=v=>Array(24).fill(v);
 const payload=hourly=>JSON.stringify({hourly:{time:times,...hourly},hourly_units:{precipitation:"mm"}});
-const archive={archive_id:"test-cycle",generated_at_utc:"2026-11-09T12:00:00Z",target:{timezone:"UTC"},products:[
+const archive={archive_id:"test-cycle",generated_at_utc:"2026-11-09T12:00:00Z",target:{latitude:28.0801523,longitude:51.77113355,timezone:"UTC"},products:[
  {type:"deterministic",model:"ecmwf_ifs",raw_payload:payload({precipitation:values(0.25)})},
  {type:"ensemble",model:"ecmwf_ifs025_ensemble",raw_payload:payload({precipitation_member01:values(0.25),precipitation_member02:values(0.2),precipitation_member03:values(0.1)})}
 ]};
 const observed=[{station_id:"WMO-40872",window_start_utc:"2026-11-10T00:00:00Z",window_end_utc:"2026-11-11T00:00:00Z",total_mm:5}];
+assert.throws(()=>buildVerificationPairs({...archive,target:{...archive.target,latitude:27.95}},observed),/target_mismatch_abdan_reference/);
 const built=buildVerificationPairs(archive,observed);
 assert.equal(built.errors.length,0);assert.equal(built.pairs.length,2);
 const deterministic=built.pairs.find(x=>x.product_type==="deterministic");

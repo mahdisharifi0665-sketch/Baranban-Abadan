@@ -14,6 +14,7 @@ function isValidUtcTimestamp(value) {
 export function createForecastArchiveDocument({generatedAtUtc, target, results, failures = []}) {
   if (!isValidUtcTimestamp(generatedAtUtc)) throw new TypeError("generatedAtUtc must be an ISO UTC timestamp with milliseconds");
   if (!target || !Number.isFinite(target.latitude) || target.latitude < -90 || target.latitude > 90 || !Number.isFinite(target.longitude) || target.longitude < -180 || target.longitude > 180 || typeof target.timezone !== "string" || !target.timezone.trim() || !Number.isInteger(target.requestedCalendarDays) || target.requestedCalendarDays < 1) throw new TypeError("Invalid forecast archive target metadata");
+  if (Math.abs(target.latitude - 28.0801523) > 0.000001 || Math.abs(target.longitude - 51.77113355) > 0.000001) throw new TypeError("Forecast archive target must match the canonical Abdan reference point");
   if (!Array.isArray(results) || results.length === 0) throw new TypeError("Archive requires at least one successful product");
   if (!Array.isArray(failures)) throw new TypeError("failures must be an array");
   const products = results.map((item) => {

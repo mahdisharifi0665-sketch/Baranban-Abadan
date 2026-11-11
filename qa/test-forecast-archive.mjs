@@ -27,5 +27,7 @@ assert.throws(()=>createForecastArchiveDocument({...base,generatedAtUtc:"yesterd
 assert.throws(()=>createForecastArchiveDocument({...base,generatedAtUtc:"2026-02-30T10:00:00.000Z"}),/ISO UTC timestamp/);
 assert.throws(()=>createForecastArchiveDocument({...base,results:[{...base.results[0],retrievedAtUtc:"2026-04-31T09:59:00.000Z"}]}),/retrievedAtUtc/);
 assert.throws(()=>createForecastArchiveDocument({...base,target:{...base.target,latitude:999}}),/target metadata/);
+assert.throws(()=>createForecastArchiveDocument({...base,target:{...base.target,latitude:27.95}}),/canonical Abdan reference point/);
+assert.throws(()=>createForecastArchiveDocument({...base,target:{...base.target,longitude:50.95}}),/canonical Abdan reference point/);
 assert.throws(()=>createForecastArchiveDocument({...base,results:[]}),/at least one successful product/);
 console.log("PASS: immutable forecast archive envelope, raw payload/hash retention and invalid metadata rejection.");

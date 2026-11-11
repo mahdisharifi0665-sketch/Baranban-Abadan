@@ -28,6 +28,8 @@ export function deduplicateForecastArchives(archives){
 function median(values){const sorted=[...values].sort((a,b)=>a-b),m=Math.floor(sorted.length/2);return sorted.length%2?sorted[m]:(sorted[m-1]+sorted[m])/2;}
 export function buildVerificationPairs(archive,observedWindows,{timezone=archive?.target?.timezone||"Asia/Tehran"}={}){
  if(!archive||!Array.isArray(archive.products)||!Array.isArray(observedWindows))throw new TypeError("archive_products_and_observed_windows_required");
+ const target=archive.target;
+ if(!target||!Number.isFinite(target.latitude)||!Number.isFinite(target.longitude)||Math.abs(target.latitude-28.0801523)>0.000001||Math.abs(target.longitude-51.77113355)>0.000001)throw new TypeError("forecast_archive_target_mismatch_abdan_reference");
  const issue=Date.parse(archive.forecast_issue_time_utc||archive.generated_at_utc);if(!Number.isFinite(issue))throw new TypeError("invalid_forecast_archive_issue_time");
  const eligibleWindows=observedWindows.filter(w=>Number.isFinite(Date.parse(w.window_start_utc))&&Date.parse(w.window_start_utc)>=issue&&Number.isFinite(Date.parse(w.window_end_utc))&&Date.parse(w.window_end_utc)>Date.parse(w.window_start_utc)&&Number.isFinite(w.total_mm));
  const pairs=[],errors=[];if(eligibleWindows.length===0)return {pairs,errors};
