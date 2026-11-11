@@ -45,6 +45,35 @@ export function aggregatePrecipitation(intervals, window, expectedUnit = "mm") {
   }
 }
 
+export const ENSEMBLE_COVERAGE_POLICY_DEFINITIONS = Object.freeze({
+  "strict-100-v1": Object.freeze({minMemberCoverage:1, status:"strict-diagnostic"}),
+  "candidate-90-v1": Object.freeze({minMemberCoverage:0.9, status:"candidate-uncalibrated"})
+});
+
+export function createEnsembleCoveragePolicy(totalMembers, policyId = "candidate-90-v1") {
+  if (!Number.isInteger(totalMembers) || totalMembers < 1) return null;
+  const definition = ENSEMBLE_COVERAGE_POLICY_DEFINITIONS[policyId];
+  if (!definition) return null;
+  return {
+    policyId,
+    policyStatus:definition.status,
+    minMemberCoverage:definition.minMemberCoverage,
+    minValidMembers:Math.ceil(totalMembers * definition.minMemberCoverage),
+    totalMembers
+  };
+}
+
+function coverageMetadata(config, totalMembers, validMembers, requiredMembers) {
+  return {
+    policyId:config.policyId || "custom-unversioned",
+    policyStatus:config.policyStatus || "unclassified",
+    validMembers,
+    totalMembers,
+    requiredMembers,
+    coverageFraction:totalMembers ? validMembers / totalMembers : 0
+  };
+}
+
 export function ensembleExceedance(members, window, thresholdMm, config) {
   if (!Number.isFinite(thresholdMm) || thresholdMm < 0) {
     return {probability:null, reason:"invalid_threshold", validMembers:0, totalMembers:Array.isArray(members)?members.length:0};
@@ -67,16 +96,14 @@ export function ensembleExceedance(members, window, thresholdMm, config) {
   const requiredByFraction = Math.ceil(totalMembers * config.minMemberCoverage);
   const requiredMembers = Math.max(config.minValidMembers, requiredByFraction);
   if (validMembers < requiredMembers) {
-    return {probability:null, reason:"insufficient_valid_members", validMembers, totalMembers, requiredMembers};
+    return {probability:null, reason:"insufficient_valid_members", ...coverageMetadata(config,totalMembers,validMembers,requiredMembers)};
   }
   const thresholdScaled = Math.round(thresholdMm * 1_000_000);
   const exceedances = validTotals.filter(total => total >= thresholdScaled).length;
   return {
     probability:exceedances / validMembers,
     exceedances,
-    validMembers,
-    totalMembers,
-    requiredMembers,
+    ...coverageMetadata(config,totalMembers,validMembers,requiredMembers),
     thresholdMm,
     comparison:">="
   };
@@ -99,9 +126,9 @@ export function ensembleDailyExceedance(memberTotals, thresholdMm, config) {
   const validMembers=valid.length;
   const requiredMembers=Math.max(config.minValidMembers,Math.ceil(totalMembers*config.minMemberCoverage));
   if (validMembers<requiredMembers) {
-    return {probability:null,reason:"insufficient_valid_members",validMembers,totalMembers,requiredMembers};
+    return {probability:null,reason:"insufficient_valid_members",...coverageMetadata(config,totalMembers,validMembers,requiredMembers)};
   }
   const thresholdScaled=Math.round(thresholdMm*1_000_000);
   const exceedances=valid.filter(v=>Math.round(v*1_000_000)>=thresholdScaled).length;
-  return {probability:exceedances/validMembers,exceedances,validMembers,totalMembers,requiredMembers,thresholdMm,comparison:">="};
+  return {probability:exceedances/validMembers,exceedances,...coverageMetadata(config,totalMembers,validMembers,requiredMembers),thresholdMm,comparison:">="};
 }
