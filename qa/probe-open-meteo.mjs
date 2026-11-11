@@ -102,11 +102,14 @@ async function ensemble(model) {
   const memberSeries=precipitationKeys.map(key=>({id:key,intervals:buildHourlyPrecipitationIntervals(json.hourly.time,json.hourly[key],json.hourly_units?.precipitation || "mm",TIMEZONE)}));
   const dailyAggregation=Array.from({length:DAYS},(_,i)=>{
     const date=addDays(firstForecastDate,i), win=calendarDayWindow(date,TIMEZONE);
-    const perMember=memberSeries.map(m=>aggregatePrecipitation(m.intervals,win));
+    const perMember=memberSeries.map(m=>({id:m.id,...aggregatePrecipitation(m.intervals,win)}));
     const validMembers=perMember.filter(x=>x.ok).length;
+    const reasonCounts={};
+    for (const item of perMember) if (!item.ok) reasonCounts[item.reason]=(reasonCounts[item.reason]||0)+1;
+    const firstFailure=perMember.find(x=>!x.ok) || null;
     const policy={minValidMembers:memberSeries.length,minMemberCoverage:1};
     const probabilities=Object.fromEntries([5,10,25].map(threshold=>[String(threshold),ensembleExceedance(memberSeries,win,threshold,policy).probability]));
-    return {date,validMembers,totalMembers:memberSeries.length,probabilityAllMembersComplete:probabilities};
+    return {date,validMembers,totalMembers:memberSeries.length,reasonCounts,firstFailure:firstFailure?{id:firstFailure.id,reason:firstFailure.reason}:null,probabilityAllMembersComplete:probabilities};
   });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
