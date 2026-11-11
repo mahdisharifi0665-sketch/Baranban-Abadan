@@ -8,6 +8,9 @@ const base={
  value_mm:2.4,measurement_kind:"interval_total",quality_status:"raw",quality_flags:[]
 };
 assert.equal(validateRainObservation(base).valid,true);
+for (const timestamp of ["2026-02-30T00:00:00Z","2026-04-31T00:00:00Z","2026-11-11T24:00:00Z","2026-11-11T12:60:00Z","2026-11-11T12:00:00+25:00"]) {
+ assert.ok(validateRainObservation({...base,observed_start_utc:timestamp}).errors.includes("invalid_observed_start_utc"), `reject invalid timestamp ${timestamp}`);
+}
 assert.ok(validateRainObservation({...base,value_mm:-0.1}).errors.includes("invalid_rain_value"));
 assert.ok(validateRainObservation({...base,station:{...base.station,latitude:95}}).errors.includes("invalid_latitude"));
 assert.ok(validateRainObservation({...base,observed_end_utc:base.observed_start_utc}).errors.includes("non_positive_observation_interval"));
