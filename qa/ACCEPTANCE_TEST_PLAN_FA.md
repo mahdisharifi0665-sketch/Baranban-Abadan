@@ -105,3 +105,5 @@
 - علت: ویژگی‌های الزام‌شده در شاخه then تعریف محلی نداشتند؛ هرچند در properties سطح بالاتر وجود داشتند.
 - اصلاح: تعریف نوع و قیود ویژگی‌ها در then برای ensemble_member، ensemble_statistic و observation.
 - وضعیت اصلاح: commit `c4157bac9f1ba317d4e1b2fa01c01e2999b83836`؛ اجرای مجدد CI روی commit اصلاح‌شده هنوز در انتظار است.
+
+- دور دوم CI پس از رفع strictRequired خطای دوم Ajv را نشان داد: union typeهای JSON Schema به گزینه allowUnionTypes نیاز دارند. پیکربندی تست اصلاح شد؛ نتیجه دور بعدی باید تأیید کند.
