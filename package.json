@@ -1,23 +1,28 @@
 {
-  "name":"baranyar-abadan",
-  "private":true,
-  "version":"6.0.0",
-  "description":"Core, schemas and QA tooling for BaranYar Abadan",
-  "scripts":{
-    "test:schema":"node qa/validate-schema.mjs",
-    "test:precipitation":"node qa/test-precipitation-core.mjs",
-    "test":"npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations && npm run test:station-registry && npm run test:noaa-gsod && npm run test:ogimet-synop && npm run test:verification",
-    "test:time-adapter":"node qa/test-open-meteo-time-adapter.mjs",
-    "test:archive":"node qa/test-forecast-archive.mjs",
-    "test:observations":"node qa/test-rain-observations.mjs",
-    "test:station-registry":"node qa/test-observation-station-registry.mjs",
-    "test:noaa-gsod":"node qa/test-noaa-gsod-observations.mjs",
-    "test:ogimet-synop":"node qa/test-ogimet-synop-observations.mjs",
-    "probe:ogimet-synop":"node qa/probe-ogimet-synop.mjs",
-    "test:verification":"node qa/test-forecast-observation-verification.mjs",
-    "verify:observations":"node qa/run-verification.mjs",
-    "backtest:single-runs":"node qa/backtest-open-meteo-single-runs.mjs",
-    "probe:noaa-gsod":"node qa/probe-noaa-gsod.mjs"
+  "name": "baranyar-abadan",
+  "private": true,
+  "version": "6.0.0",
+  "description": "Core, schemas and QA tooling for BaranYar Abadan",
+  "scripts": {
+    "test:schema": "node qa/validate-schema.mjs",
+    "test:precipitation": "node qa/test-precipitation-core.mjs",
+    "test": "npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations && npm run test:station-registry && npm run test:noaa-gsod && npm run test:ogimet-synop && npm run test:verification && npm run test:era5-gridded",
+    "test:time-adapter": "node qa/test-open-meteo-time-adapter.mjs",
+    "test:archive": "node qa/test-forecast-archive.mjs",
+    "test:observations": "node qa/test-rain-observations.mjs",
+    "test:station-registry": "node qa/test-observation-station-registry.mjs",
+    "test:noaa-gsod": "node qa/test-noaa-gsod-observations.mjs",
+    "test:ogimet-synop": "node qa/test-ogimet-synop-observations.mjs",
+    "probe:ogimet-synop": "node qa/probe-ogimet-synop.mjs",
+    "test:verification": "node qa/test-forecast-observation-verification.mjs",
+    "verify:observations": "node qa/run-verification.mjs",
+    "backtest:single-runs": "node qa/backtest-open-meteo-single-runs.mjs",
+    "probe:noaa-gsod": "node qa/probe-noaa-gsod.mjs",
+    "test:era5-gridded": "node qa/test-era5-gridded-precipitation.mjs",
+    "probe:era5-gridded": "node qa/probe-era5-precipitation.mjs"
   },
-  "devDependencies":{"ajv":"8.20.0","ajv-formats":"3.0.1"}
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  }
 }
