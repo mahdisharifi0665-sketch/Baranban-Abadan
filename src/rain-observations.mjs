@@ -1,4 +1,20 @@
-const ISO_WITH_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/;
+const ISO_WITH_ZONE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(Z|([+-])(\d{2}):(\d{2}))$/;
+
+function isValidTimestamp(value) {
+  if (typeof value !== "string") return false;
+  const match = ISO_WITH_ZONE.exec(value);
+  if (!match) return false;
+  const [year, month, day, hour, minute, second] = match.slice(1, 7).map((v, i) => v === undefined ? 0 : Number(v));
+  if (hour > 23 || minute > 59 || second > 59) return false;
+  if (match[8] !== "Z" && (Number(match[10]) > 23 || Number(match[11]) > 59)) return false;
+  const calendar = new Date(0);
+  calendar.setUTCFullYear(year, month - 1, day);
+  calendar.setUTCHours(hour, minute, second, 0);
+  if (calendar.getUTCFullYear() !== year || calendar.getUTCMonth() + 1 !== month ||
+      calendar.getUTCDate() !== day || calendar.getUTCHours() !== hour ||
+      calendar.getUTCMinutes() !== minute || calendar.getUTCSeconds() !== second) return false;
+  return Number.isFinite(Date.parse(value));
+}
 
 export function validateRainObservation(record) {
   const errors = [];
@@ -9,7 +25,7 @@ export function validateRainObservation(record) {
   if (typeof record.observation_id !== "string" || !record.observation_id.trim()) errors.push("invalid_observation_id");
   if (record.schema_version !== "1.0.0") errors.push("unsupported_schema_version");
   for (const key of ["observed_start_utc","observed_end_utc","retrieved_at_utc"]) {
-    if (typeof record[key] !== "string" || !ISO_WITH_ZONE.test(record[key]) || !Number.isFinite(Date.parse(record[key]))) errors.push("invalid_"+key);
+    if (!isValidTimestamp(record[key])) errors.push("invalid_"+key);
   }
   if (record.station) {
     const s=record.station;
