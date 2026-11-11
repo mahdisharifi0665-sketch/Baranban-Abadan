@@ -9,7 +9,7 @@ const retrievedAtUtc=new Date().toISOString();
 const sources=[];
 for(const year of years){
  const url="https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/"+year+"/"+stationId+".csv";
- const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{"user-agent":"Baranban-Abadan/5.1 observation-quality-probe"}});
+ const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{"user-agent":"BaranYar-Abadan/6.0.0 observation-quality-probe"}});
  if(!response.ok){if(year===2025) throw new Error("NOAA GSOD historical reference fetch failed: HTTP "+response.status+" at "+url);sources.push({year,url,http_status:response.status,available:false,reason:"current_year_file_not_available"});continue;}
  const raw=await response.text(); if(raw.length<100) throw new Error("NOAA GSOD response too small for "+year);
  const observations=parseNoaaGsodCsv(raw,{expectedStationId:stationId,retrievedAtUtc});
