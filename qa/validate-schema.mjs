@@ -5,13 +5,13 @@ import addFormats from "ajv-formats";
 
 const schema = JSON.parse(fs.readFileSync("schemas/forecast-record.schema.json", "utf8"));
 const observationSchema = JSON.parse(fs.readFileSync("schemas/rain-observation.schema.json", "utf8"));
-const stationRegistrySchema = JSON.parse(fs.readFileSync("schemas/observation-station-registry.schema.json", "utf8"));
+const stationRegistrySchema = JSON.parse(fs.readFileSync("schemas/observation-station-registry.schema.json", "utf8"));\nconst griddedPrecipitationSchema = JSON.parse(fs.readFileSync("schemas/gridded-precipitation.schema.json", "utf8"));
 const stationRegistry = JSON.parse(fs.readFileSync("data/observation-station-registry.json", "utf8"));
 const ajv = new Ajv2020({allErrors:true, strict:true, allowUnionTypes:true});
 addFormats(ajv);
 const validate = ajv.compile(schema);
 const validateObservation = ajv.compile(observationSchema);
-const validateStationRegistry = ajv.compile(stationRegistrySchema);
+const validateStationRegistry = ajv.compile(stationRegistrySchema);\nconst validateGriddedPrecipitation = ajv.compile(griddedPrecipitationSchema);
 
 const valid = {
   schema_version:"1.0.0",
@@ -63,4 +63,8 @@ assert.equal(validateObservation(observation),true,JSON.stringify(validateObserv
 assert.equal(validateObservation({...observation,value_mm:-1}),false,"negative observed rainfall must fail");
 assert.equal(validateObservation({...observation,station:{...observation.station,longitude:181}}),false,"invalid station longitude must fail");
 assert.equal(validateStationRegistry(stationRegistry),true,JSON.stringify(validateStationRegistry.errors));
+const griddedRecord={record_schema_version:"1.0.0",record_id:"ERA5-20261101T010000Z",source:{provider:"Open-Meteo Historical Weather API",dataset:"ERA5",source_type:"reanalysis_grid_estimate",source_url:"https://archive-api.open-meteo.com/v1/archive",variable:"precipitation",unit:"mm",nominal_grid_resolution_degrees:0.25,temporal_semantics:"preceding_hour_sum"},target:{name:"Abdan",latitude:28.0801523,longitude:51.77113355},grid_cell:{latitude:28,longitude:51.75,selection:"nearest"},interval_start_utc:"2026-11-01T00:00:00Z",interval_end_utc:"2026-11-01T01:00:00Z",retrieved_at_utc:"2026-11-02T00:00:00Z",value_mm:0,quality_status:"raw",quality_flags:["reanalysis_not_ground_station"]};
+assert.equal(validateGriddedPrecipitation(griddedRecord),true,JSON.stringify(validateGriddedPrecipitation.errors));
+assert.equal(validateGriddedPrecipitation({...griddedRecord,value_mm:null}),false,"missing values cannot be mislabeled raw");
+assert.equal(validateGriddedPrecipitation({...griddedRecord,source:{...griddedRecord.source,source_type:"official_station"}}),false,"gridded data must remain distinct from station observations");
 console.log("PASS: forecast, rain-observation and observation-station registry schemas compile; structural and semantic regression checks passed.");
