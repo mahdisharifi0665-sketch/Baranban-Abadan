@@ -6,10 +6,11 @@
   "scripts": {
     "test:schema": "node qa/validate-schema.mjs",
     "test:precipitation": "node qa/test-precipitation-core.mjs",
-    "test": "npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations",
+    "test": "npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations && npm run test:station-registry",
     "test:time-adapter": "node qa/test-open-meteo-time-adapter.mjs",
     "test:archive": "node qa/test-forecast-archive.mjs",
-    "test:observations": "node qa/test-rain-observations.mjs"
+    "test:observations": "node qa/test-rain-observations.mjs",
+    "test:station-registry": "node qa/test-observation-station-registry.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",
