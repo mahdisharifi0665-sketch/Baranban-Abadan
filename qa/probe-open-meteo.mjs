@@ -3,7 +3,7 @@ import {mkdir,writeFile} from "node:fs/promises";
 import {createForecastArchiveDocument} from "../src/forecast-archive.mjs";
 import {createHash} from "node:crypto";
 import {aggregatePrecipitation,ensembleExceedance,ensembleDailyExceedance,createEnsembleCoveragePolicy} from "../src/precipitation-core.mjs";
-import {buildHourlyPrecipitationIntervals,calendarDayWindow} from "../src/open-meteo-time-adapter.mjs";
+import {buildHourlyPrecipitationIntervals,calendarDayWindow,utcHourlyForecastWindow} from "../src/open-meteo-time-adapter.mjs";
 
 const LAT = 28.0794;
 const LON = 51.7694;
@@ -36,9 +36,7 @@ async function getJson(base, params) {
   return json;
 }
 
-const verificationStart=new Date(Math.ceil(Date.now()/3600000)*3600000);
-const verificationEnd=new Date(verificationStart.getTime()+239*3600000);
-const verificationWindow={startHour:verificationStart.toISOString().slice(0,16),endHour:verificationEnd.toISOString().slice(0,16),expectedHours:240};
+const verificationWindow=utcHourlyForecastWindow(Date.now(),240);
 async function getUtcVerificationPayload(base,model){
  const json=await getJson(base,{latitude:String(LAT),longitude:String(LON),hourly:"precipitation",start_hour:verificationWindow.startHour,end_hour:verificationWindow.endHour,timezone:"UTC",models:model,cell_selection:"land"});
  const check=inspectHourly(json,"precipitation");

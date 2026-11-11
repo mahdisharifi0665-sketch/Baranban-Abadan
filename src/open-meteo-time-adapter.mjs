@@ -96,3 +96,17 @@ export function requiredHourlyLabelsForCalendarDay(date, timeZone="Asia/Tehran")
   }
   return labels;
 }
+
+export function utcHourlyForecastWindow(nowMs=Date.now(),expectedHours=240) {
+  if(!Number.isFinite(nowMs)||!Number.isInteger(expectedHours)||expectedHours<1)throw new TypeError("invalid_utc_forecast_window_options");
+  const coverageStartMs=Math.ceil(nowMs/3600000)*3600000;
+  const firstLabelMs=coverageStartMs+3600000;
+  const lastLabelMs=coverageStartMs+expectedHours*3600000;
+  return {
+    startHour:new Date(firstLabelMs).toISOString().slice(0,16),
+    endHour:new Date(lastLabelMs).toISOString().slice(0,16),
+    expectedHours,
+    coverageStartUtc:new Date(coverageStartMs).toISOString(),
+    coverageEndUtc:new Date(lastLabelMs).toISOString()
+  };
+}

@@ -151,10 +151,11 @@
       "operational_ingestion_enabled": false,
       "archive_ingestion_enabled": false,
       "source_urls": [
+        "https://bordekhoun.blogfa.com/?p=100",
         "https://jelaliyan.blogfa.com/author/jelaliyan?p=2",
         "https://t.me/s/weatherboushehrhelleh"
       ],
-      "evidence_note": "A historical public report quoting the Dayyer Water Resources Office stated that rain-gauge stations in Dayyer, Abadan and Konari recorded seasonal rainfall totals (119, 71 and 61 mm respectively). A secondary public weather channel has also published station rainfall totals including Abadan. This supports the existence of a local rain gauge, but its exact coordinates, station code, instrument, current operator contact and machine-readable data feed are unverified. Metadata-only candidate; do not ingest until original records and station metadata are confirmed."
+      "evidence_note": "A historical public report dated 1396/09/30 quoting Ali Zaeri, head of Dayyer County Water Resources Office, explicitly identified rain-gauge stations in Dayyer, Abadan and Konari and reported seasonal totals of 119, 71 and 61 mm respectively. This supports the existence of a local Abadan rain gauge, but its exact coordinates, station code, instrument, current operator contact, observation cadence and machine-readable feed remain unverified. Metadata-only candidate; do not ingest until original station records and metadata are confirmed."
     }
   ],
   "providers": [

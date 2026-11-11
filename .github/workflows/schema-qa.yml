@@ -52,6 +52,10 @@ jobs:
         timeout-minutes: 5
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
         run: node qa/probe-open-meteo-single-runs.mjs
+      - name: Backtest archived daily 00Z model runs against strict regional 24-hour observations
+        timeout-minutes: 8
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
+        run: npm run backtest:single-runs
       - name: Test forecast and observation verification metrics
         run: npm run test:verification
       - name: Probe live Open-Meteo model endpoints for Abadan and write archive
@@ -66,6 +70,14 @@ jobs:
         with:
           name: baranban-forecast-archive-${{ github.run_id }}
           path: artifacts/forecast-archive/*.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload full historical single-run backtest (90-day interim retention)
+        if: hashFiles('artifacts/verification/single-run-backtest.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: baranban-single-run-backtest-${{ github.run_id }}
+          path: artifacts/verification/single-run-backtest.json
           if-no-files-found: error
           retention-days: 90
       - name: Upload regional verification report (90-day interim retention)

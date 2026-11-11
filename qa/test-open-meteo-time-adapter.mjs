@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {aggregatePrecipitation} from "../src/precipitation-core.mjs";
-import {localDateTimeToUtc,calendarDayWindow,buildHourlyPrecipitationIntervals,requiredHourlyLabelsForCalendarDay} from "../src/open-meteo-time-adapter.mjs";
+import {localDateTimeToUtc,calendarDayWindow,buildHourlyPrecipitationIntervals,requiredHourlyLabelsForCalendarDay,utcHourlyForecastWindow} from "../src/open-meteo-time-adapter.mjs";
 
 const window=calendarDayWindow("2026-11-12","Asia/Tehran");
 assert.equal(window.start,"2026-11-11T20:30:00.000Z");
@@ -20,4 +20,14 @@ assert.equal(total.totalMm,6);
 assert.throws(()=>buildHourlyPrecipitationIntervals(labels,values,"mm/h","Asia/Tehran"));
 assert.throws(()=>buildHourlyPrecipitationIntervals([labels[0],labels[2]],[1,1],"mm","Asia/Tehran"));
 assert.throws(()=>localDateTimeToUtc("2026-11-12T01:00","Invalid/Timezone"));
+const safeWindow=utcHourlyForecastWindow(Date.parse("2026-11-11T11:25:00Z"),240);
+assert.equal(safeWindow.startHour,"2026-11-11T13:00");
+assert.equal(safeWindow.endHour,"2026-11-21T12:00");
+assert.equal(safeWindow.coverageStartUtc,"2026-11-11T12:00:00.000Z");
+assert.equal(safeWindow.coverageEndUtc,"2026-11-21T12:00:00.000Z");
+const safeLabels=Array.from({length:240},(_,i)=>new Date(Date.parse(safeWindow.startHour+"Z")+i*3600000).toISOString().slice(0,16));
+const safeIntervals=buildHourlyPrecipitationIntervals(safeLabels,Array(240).fill(0),"mm","UTC");
+assert.equal(safeIntervals.length,240);
+assert.equal(safeIntervals[0].start,safeWindow.coverageStartUtc);
+assert.equal(safeIntervals.at(-1).end,safeWindow.coverageEndUtc);
 console.log("PASS: Open-Meteo previous-hour mapping and Asia/Tehran calendar-day boundaries.");
