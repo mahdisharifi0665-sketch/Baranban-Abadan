@@ -15,11 +15,10 @@ permissions:
   actions: read
 
 concurrency:
-  # Isolate push, scheduled, and manual runs so a stuck run from one trigger
-  # cannot block every other trigger type. New runs replace stale runs of
-  # the same trigger type.
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  # Preserve the original group key so new pushes can supersede stale queued
+  # runs created under earlier workflow revisions.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   validate-forecast-schema:
@@ -93,13 +92,13 @@ jobs:
         run: node qa/probe-open-meteo.mjs
       - name: Score archived forecasts against complete regional 24-hour observations
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: npm run verify:observations
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload forecast-cycle archive (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/forecast-archive/*.json') != ''
-        timeout-minutes: 3
+        timeout-minutes: 10
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-forecast-archive-${{ github.run_id }}
@@ -108,7 +107,7 @@ jobs:
           retention-days: 90
       - name: Upload full historical single-run backtest (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/verification/single-run-backtest.json') != ''
-        timeout-minutes: 3
+        timeout-minutes: 10
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-single-run-backtest-${{ github.run_id }}
@@ -117,7 +116,7 @@ jobs:
           retention-days: 90
       - name: Upload regional verification report (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/verification/verification-report.json') != ''
-        timeout-minutes: 3
+        timeout-minutes: 10
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-verification-report-${{ github.run_id }}
@@ -126,7 +125,7 @@ jobs:
           retention-days: 90
       - name: Upload regional observation archive (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/observation-archive/*.json') != ''
-        timeout-minutes: 3
+        timeout-minutes: 10
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-observation-archive-${{ github.run_id }}
