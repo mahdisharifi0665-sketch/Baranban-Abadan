@@ -1,3 +1,4 @@
+import {createHash} from "node:crypto";
 // Immutable forecast-cycle archive envelope. Raw provider payloads are retained with SHA-256.
 const ISO_UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -11,6 +12,8 @@ export function createForecastArchiveDocument({generatedAtUtc, target, results, 
     if (!item || typeof item.model !== "string" || !["deterministic","ensemble"].includes(item.type)) throw new TypeError("Each archived product requires a model and supported type");
     if (typeof item.retrievedAtUtc !== "string" || !Number.isFinite(Date.parse(item.retrievedAtUtc))) throw new TypeError("Each product requires retrievedAtUtc");
     if (typeof item.rawPayload !== "string" || !SHA256.test(item.payloadSha256 || "")) throw new TypeError("Each product requires its raw provider payload and SHA-256 hash");
+    const actualHash=createHash("sha256").update(item.rawPayload).digest("hex");
+    if (actualHash !== item.payloadSha256) throw new TypeError("Raw provider payload SHA-256 mismatch");
     const {rawPayload,...summary}=item;
     return {...summary,raw_payload:rawPayload};
   });
