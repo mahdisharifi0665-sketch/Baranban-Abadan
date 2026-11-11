@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import {createHash} from "node:crypto";
+import {aggregatePrecipitation,ensembleExceedance} from "../src/precipitation-core.mjs";
+import {buildHourlyPrecipitationIntervals,calendarDayWindow} from "../src/open-meteo-time-adapter.mjs";
 
 const LAT = 28.0794;
 const LON = 51.7694;
@@ -75,7 +77,13 @@ async function deterministic(model) {
   assert.ok(precipCheck.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipCheck.arraysAligned, model + " precipitation arrays are not aligned with timestamps");
 
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, cape:inspectHourly(json,"cape"), requestedWindow};
+  const intervals=buildHourlyPrecipitationIntervals(json.hourly.time,json.hourly.precipitation,json.hourly_units.precipitation,TIMEZONE);
+  const dailyTotals=Array.from({length:DAYS},(_,i)=>{
+    const date=addDays(firstForecastDate,i), win=calendarDayWindow(date,TIMEZONE);
+    const result=aggregatePrecipitation(intervals,win);
+    return {date,totalMm:result.ok?result.totalMm:null,reason:result.ok?null:result.reason};
+  });
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, cape:inspectHourly(json,"cape"), requestedWindow};
 }
 
 async function ensemble(model) {
@@ -89,9 +97,19 @@ async function ensemble(model) {
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   const precipitation = inspectHourly(json,"precipitation");
   assert.ok(precipitation.variableFields > 0, model + " returned no precipitation member fields");
+  const precipitationKeys=Object.keys(json.hourly).filter(k=>k==="precipitation" || k.startsWith("precipitation_"));
+  const memberSeries=precipitationKeys.map(key=>({id:key,intervals:buildHourlyPrecipitationIntervals(json.hourly.time,json.hourly[key],json.hourly_units?.precipitation || "mm",TIMEZONE)}));
+  const dailyAggregation=Array.from({length:DAYS},(_,i)=>{
+    const date=addDays(firstForecastDate,i), win=calendarDayWindow(date,TIMEZONE);
+    const perMember=memberSeries.map(m=>aggregatePrecipitation(m.intervals,win));
+    const validMembers=perMember.filter(x=>x.ok).length;
+    const policy={minValidMembers:memberSeries.length,minMemberCoverage:1};
+    const probabilities=Object.fromEntries([5,10,25].map(threshold=>[String(threshold),ensembleExceedance(memberSeries,win,threshold,policy).probability]));
+    return {date,validMembers,totalMembers:memberSeries.length,probabilityAllMembersComplete:probabilities};
+  });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:"diagnostic only: requires every ensemble member to have a complete 24-hour window"}, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
