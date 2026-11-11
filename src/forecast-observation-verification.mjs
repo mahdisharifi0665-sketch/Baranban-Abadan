@@ -78,3 +78,8 @@ export function scoreVerificationPairs(pairs,{minimumSamples=30}={}){
  }
  return {report_schema_version:"1.0.0",pair_count:pairs.length,group_count:groups.length,verification_source:"regional_proxy",station_id:"WMO-40872",station_distance_from_abadan_km:31.7,direct_abadan_ground_truth:false,calibration_approved:false,forecast_skill_validated:false,minimum_samples_for_preliminary_metrics:minimumSamples,groups,notes:["Standard forecast products use archive retrieval time because authoritative model initialization time is not exposed; historical Single Runs products use the requested run parameter as issue-time proxy.","Observed windows are exact rolling 24-hour intervals from the Bandar-e-Dayyer SYNOP station, not local Abadan gauge measurements.","No probability calibration or operational policy approval is inferred from these regional-proxy scores."]};
 }
+
+export function singleRunBacktestWindowNote(windowCount){
+ if(!Number.isInteger(windowCount)||windowCount<0)throw new TypeError("window_count_must_be_non_negative_integer");
+ return `The ${windowCount}-window sample contains very few effective-rain events; continuous errors are preliminary and event scores are not sufficient for calibration or operational threshold changes.`;
+}

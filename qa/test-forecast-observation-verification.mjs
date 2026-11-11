@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import {buildVerificationPairs,scoreVerificationPairs,selectForecastArtifactsForVerification,forecastLeadBin,deduplicateForecastArchives,isForecastArchiveTargetInScope} from "../src/forecast-observation-verification.mjs";
+import {buildVerificationPairs,scoreVerificationPairs,selectForecastArtifactsForVerification,forecastLeadBin,deduplicateForecastArchives,isForecastArchiveTargetInScope,singleRunBacktestWindowNote} from "../src/forecast-observation-verification.mjs";
+assert.match(singleRunBacktestWindowNote(54),/^The 54-window sample contains/);
+assert.throws(()=>singleRunBacktestWindowNote(-1),/window_count_must_be_non_negative_integer/);
 const times=[];for(let i=1;i<=24;i++){const d=new Date(Date.parse("2026-11-10T00:00:00Z")+i*3600000);times.push(d.toISOString().slice(0,16));}
 const values=v=>Array(24).fill(v);
 const payload=hourly=>JSON.stringify({hourly:{time:times,...hourly},hourly_units:{precipitation:"mm"}});
