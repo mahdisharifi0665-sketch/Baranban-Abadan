@@ -19,7 +19,7 @@ assert.equal(archive.records[2].quality_status,"missing");
 assert.ok(archive.records.every(x=>x.source.source_type==="reanalysis_grid_estimate"));
 assert.ok(archive.records.every(x=>x.quality_flags.includes("reanalysis_not_ground_station")||x.quality_flags.includes("source_value_missing")));
 assert.throws(()=>parseEra5PrecipitationResponse({...payload,hourly:{...payload.hourly,precipitation:[0]} }),/array_length_mismatch/);
-assert.throws(()=>parseEra5PrecipitationResponse({...payload,hourly:{time:["2026-11-01T01:00+03:30"],precipitation:[0]}}),/must_be_utc/);
+assert.throws(()=>parseEra5PrecipitationResponse({...payload,hourly:{time:["2026-11-01T01:00+03:30"],precipitation:[0]}}),/must_be_utc/);\nconst noSuffix=parseEra5PrecipitationResponse({latitude:28,longitude:51.75,hourly:{time:["2026-11-01T01:00"],precipitation:[0]}},{retrievedAtUtc:"2026-11-02T00:00:00Z"});\nassert.equal(noSuffix.records[0].interval_end_utc,"2026-11-01T01:00:00.000Z");
 let requested="";
 const fetched=await fetchEra5Precipitation({startDate:"2026-11-01",endDate:"2026-11-01",fetchImpl:async u=>{requested=u;return {ok:true,json:async()=>({latitude:28,longitude:51.75,hourly:{time:["2026-11-01T01:00Z"],precipitation:[0]}})}},retrievedAtUtc:"2026-11-02T00:00:00Z"});
 assert.equal(fetched.record_count,1);
