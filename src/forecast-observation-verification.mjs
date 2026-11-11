@@ -1,6 +1,7 @@
 import {buildHourlyPrecipitationIntervals} from "./open-meteo-time-adapter.mjs";
 import {aggregatePrecipitation,createEnsembleCoveragePolicy,ensembleExceedance} from "./precipitation-core.mjs";
 const THRESHOLDS=[5,10,25];
+function distanceKm(aLat,aLon,bLat,bLon){const rad=d=>d*Math.PI/180,dLat=rad(bLat-aLat),dLon=rad(bLon-aLon),a=Math.sin(dLat/2)**2+Math.cos(rad(aLat))*Math.cos(rad(bLat))*Math.sin(dLon/2)**2;return 6371*2*Math.asin(Math.sqrt(a));}
 export function selectForecastArtifactsForVerification(artifacts,observedWindows,{nowMs=Date.now(),lookbackDays=30,limit=250}={}) {
  if(!Array.isArray(artifacts)||!Array.isArray(observedWindows))throw new TypeError("artifacts_and_observation_windows_required");
  if(!Number.isFinite(nowMs)||!Number.isFinite(lookbackDays)||lookbackDays<=0||!Number.isInteger(limit)||limit<1)throw new TypeError("invalid_artifact_selection_options");
@@ -29,7 +30,7 @@ function median(values){const sorted=[...values].sort((a,b)=>a-b),m=Math.floor(s
 export function buildVerificationPairs(archive,observedWindows,{timezone=archive?.target?.timezone||"Asia/Tehran"}={}){
  if(!archive||!Array.isArray(archive.products)||!Array.isArray(observedWindows))throw new TypeError("archive_products_and_observed_windows_required");
  const target=archive.target;
- if(!target||!Number.isFinite(target.latitude)||!Number.isFinite(target.longitude)||Math.abs(target.latitude-28.0801523)>0.000001||Math.abs(target.longitude-51.77113355)>0.000001)throw new TypeError("forecast_archive_target_mismatch_abdan_reference");
+ if(!target||!Number.isFinite(target.latitude)||!Number.isFinite(target.longitude)||target.latitude < -90||target.latitude > 90||target.longitude < -180||target.longitude > 180||distanceKm(28.0801523,51.77113355,target.latitude,target.longitude)>5)throw new TypeError("forecast_archive_target_outside_abdan_5km_scope");
  const issue=Date.parse(archive.forecast_issue_time_utc||archive.generated_at_utc);if(!Number.isFinite(issue))throw new TypeError("invalid_forecast_archive_issue_time");
  const eligibleWindows=observedWindows.filter(w=>Number.isFinite(Date.parse(w.window_start_utc))&&Date.parse(w.window_start_utc)>=issue&&Number.isFinite(Date.parse(w.window_end_utc))&&Date.parse(w.window_end_utc)>Date.parse(w.window_start_utc)&&Number.isFinite(w.total_mm));
  const pairs=[],errors=[];if(eligibleWindows.length===0)return {pairs,errors};
