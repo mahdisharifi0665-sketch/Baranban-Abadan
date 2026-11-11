@@ -23,4 +23,7 @@ const counter={...base,measurement_kind:"cumulative_counter",counter_reset:false
 const reset={...counter,observation_id:"004",observed_start_utc:"2026-11-11T01:00:00Z",observed_end_utc:"2026-11-11T02:00:00Z",value_mm:1};
 assert.ok(auditRainObservationSeries([counter,reset]).findings.some(x=>x.code==="unflagged_counter_reset"));
 assert.equal(auditRainObservationSeries([{...counter},{...reset,counter_reset:true}]).findings.some(x=>x.code==="unflagged_counter_reset"),false);
-console.log("PASS: rain observation contract, timestamp/coordinate/value checks, duplicate/overlap/gap and cumulative-counter reset QA.");
+const otherStation={...base,observation_id:"OTHER-001",station:{...base.station,station_id:"OTHER-STATION"}};
+assert.equal(auditRainObservationSeries([base,otherStation]).findings.some(x=>["overlapping_intervals","duplicate_interval"].includes(x.code)),false);
+assert.ok(validateRainObservation({...base,time_window_basis:"invalid"}).errors.includes("invalid_time_window_basis"));
+console.log("PASS: rain observation contract, time-window metadata, per-station duplicate/overlap/gap and counter-reset QA.");

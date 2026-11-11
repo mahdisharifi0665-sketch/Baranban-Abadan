@@ -37,6 +37,10 @@ jobs:
         run: npm run test:observations
       - name: Test observation station registry and provenance guards
         run: npm run test:station-registry
+      - name: Test NOAA GSOD daily observation adapter
+        run: npm run test:noaa-gsod
+      - name: Probe NOAA GSOD Bandar-e-Dayyer archive and write observation archive
+        run: npm run probe:noaa-gsod
       - name: Probe live Open-Meteo model endpoints for Abadan and write archive
         run: node qa/probe-open-meteo.mjs
       - name: Upload forecast-cycle archive (90-day interim retention)
@@ -44,5 +48,12 @@ jobs:
         with:
           name: baranban-forecast-archive-${{ github.run_id }}
           path: artifacts/forecast-archive/*.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload regional observation archive (90-day interim retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: baranban-observation-archive-${{ github.run_id }}
+          path: artifacts/observation-archive/*.json
           if-no-files-found: error
           retention-days: 90
