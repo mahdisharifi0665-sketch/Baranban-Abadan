@@ -1,4 +1,5 @@
 const PERIOD_HOURS=Object.freeze({1:6,2:12,3:18,4:24,5:1,6:2,7:3,8:9,9:15});
+const SUSPECT_AMOUNT_LIMITS_MM=Object.freeze({1:100,2:150,3:150,4:200,5:50,6:50,7:75,8:150,9:150});
 function parseCsvRecord(line){const fields=[];let value="",quoted=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(quoted&&line[i+1]==='"'){value+='"';i++;}else quoted=!quoted;}else if(ch===","&&!quoted){fields.push(value);value="";}else value+=ch;}if(quoted)throw new TypeError("unterminated_synop_csv_quote");fields.push(value);return fields;}
 function utcStamp(y,m,d,h,min){const stamp=String(y).padStart(4,"0")+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0")+"T"+String(h).padStart(2,"0")+":"+String(min).padStart(2,"0")+":00Z";if(!Number.isFinite(Date.parse(stamp)))throw new TypeError("invalid_synop_timestamp:"+stamp);return new Date(Date.parse(stamp)).toISOString();}
 function decodeRRR(code){if(code==="///")return {value_mm:null,status:"missing",flags:["synop_precipitation_not_measured"]};if(code==="000")return {value_mm:0,status:"raw",flags:[]};const n=Number(code);if(!Number.isInteger(n)||n<0||n>999)throw new TypeError("invalid_synop_rrr:"+code);if(n===990)return {value_mm:0,status:"suspect",flags:["synop_trace_less_than_0_05mm"]};if(n>=991)return {value_mm:Number(((n-990)/10).toFixed(1)),status:"raw",flags:[]};if(n===989)return {value_mm:989,status:"suspect",flags:["synop_989mm_or_more_censored"]};return {value_mm:n,status:"raw",flags:[]};}
@@ -13,7 +14,7 @@ export function parseOgimetSynopCsv(csv,{expectedStationId="40872",retrievedAtUt
   if(stationIndex<0){warnings.push({code:"station_id_not_found_in_synop_message",end});continue;}
   const indicator=tokens[stationIndex+1]||"",iR=/^\d{5}$/.test(indicator)?Number(indicator[0]):null;
   reports.push({station_id:station,end_utc:end,iR,message});
-  const groups=[];for(let i=0;i<tokens.length;i++){const match=tokens[i].match(/^6(\d{3}|\/{3})(\d)$/);if(match)groups.push({group:tokens[i],rrr:match[1],tR:Number(match[2]),ordinal:i});}
+  const section3Index=tokens.indexOf("333");const groups=[];for(let i=0;i<tokens.length;i++){const match=tokens[i].match(/^6(\d{3}|\/{3})(\d)$/);if(match)groups.push({group:tokens[i],rrr:match[1],tR:Number(match[2]),ordinal:i});}
   if(groups.length===0){
    if(iR===3){
     const hour=Number(end.slice(11,13)),zeroHours=zeroIntervalHoursByUtcHour[hour];
@@ -30,11 +31,15 @@ export function parseOgimetSynopCsv(csv,{expectedStationId="40872",retrievedAtUt
   }
   for(const g of groups){const hours=PERIOD_HOURS[g.tR];if(!hours){warnings.push({code:"synop_precipitation_period_unresolved",end,group:g.group});continue;}
    const decoded=decodeRRR(g.rrr),endMs=Date.parse(end),start=new Date(endMs-hours*3600000).toISOString();
-   const flags=["ogimet_getsynop_raw_wmo_synop","regional_station_not_abadan","synop_tr_"+g.tR,...decoded.flags];if(iR!==null)flags.push("synop_iR_"+iR);
+   const flags=["ogimet_getsynop_raw_wmo_synop","regional_station_not_abadan","synop_tr_"+g.tR,...decoded.flags];let qualityStatus=decoded.status;if(iR!==null)flags.push("synop_iR_"+iR);
+   const numericRrr=g.rrr==="///"?null:Number(g.rrr),limit=SUSPECT_AMOUNT_LIMITS_MM[g.tR];
+   if(g.rrr==="666"){qualityStatus="suspect";flags.push("suspect_repeated_station_code_666");}
+   if(numericRrr!==null&&Number.isFinite(numericRrr)&&Number.isFinite(limit)&&numericRrr>limit){qualityStatus="suspect";flags.push("suspect_high_accumulation_requires_independent_confirmation");}
+   if(iR===3||iR===4){qualityStatus="suspect";flags.push("synop_ir_indicator_conflicts_with_group6");}const groupInSection3=section3Index>=0&&g.ordinal>section3Index;if((iR===1&&groupInSection3)||(iR===2&&!groupInSection3)){qualityStatus="suspect";flags.push("synop_ir_section_location_conflict");}
    observations.push({schema_version:"1.0.0",observation_id:"OGIMET-SYNOP-"+station+"-"+end.replace(/[-:]/g,"").replace(".000Z","Z")+"-tr"+g.tR+"-"+g.ordinal,
     station:{station_id:"WMO-40872",name:"Bandar-e-Dayyer",latitude:27.8333,longitude:51.9333,elevation_m:4,timezone:"UTC",distance_from_abadan_km:stationDistanceKm},
     source:{provider:"OGIMET (WMO GTS redistribution)",source_type:"official_station",source_reference:"https://www.ogimet.com/cgi-bin/getsynop",instrument:null,source_product:"SYNOP FM-12",raw_measurement_flag:"RRR="+g.rrr+";tR="+g.tR+";iR="+(iR??"unknown"),measurement_period_hours:hours},
-    observed_start_utc:start,observed_end_utc:end,retrieved_at_utc:retrievedAtUtc,value_mm:decoded.value_mm,measurement_kind:"interval_total",quality_status:decoded.status,quality_flags:[...new Set(flags)],time_window_basis:"exact_interval",
+    observed_start_utc:start,observed_end_utc:end,retrieved_at_utc:retrievedAtUtc,value_mm:decoded.value_mm,measurement_kind:"interval_total",quality_status:qualityStatus,quality_flags:[...new Set(flags)],time_window_basis:"exact_interval",
     notes:"مشاهده خام SYNOP ایستگاه بندر دیر؛ بازه tR دقیقاً به زمان گزارش ختم می‌شود. ایستگاه در فاصله تقریبی 31.7 کیلومتری آبدان است و جانشین باران‌سنج محلی آبدان نیست. داده‌های خام بدون هم‌ترازسازی یا پرکردن خلأها نگهداری می‌شوند."});
   }
  }

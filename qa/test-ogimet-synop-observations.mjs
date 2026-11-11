@@ -39,4 +39,22 @@ assert.ok(inferredWindow);
 assert.equal(inferredWindow.evidence_status,"suspect_inferred_zero");
 assert.throws(()=>parseOgimetSynopCsv("bad csv"),/ogimet_synop_csv_columns_invalid/);
 assert.equal(parseOgimetSynopCsv(csv,{expectedStationId:"40858"}).observations.length,0);
+const extremeCsv=[
+ "40872,2026,11,11,12,00,AAXX 11121 40872 11658 62103 10294 20229 30157 40162 55009 60051 70562 82570 333 82635==",
+ "40872,2026,11,11,18,00,AAXX 11181 40872 11658 60001 70562 82570=="
+].join("\n");
+const extreme=parseOgimetSynopCsv(extremeCsv,{retrievedAtUtc:"2026-11-11T22:00:00Z"});
+const high=extreme.observations.find(x=>x.value_mm===210);
+assert.ok(high);
+assert.equal(high.quality_status,"suspect");
+assert.ok(high.quality_flags.includes("suspect_high_accumulation_requires_independent_confirmation"));
+assert.equal(aggregateComplete24h(extreme.observations,"2026-11-11T18:00:00Z"),null);
+const sentinel=parseOgimetSynopCsv("40872,2026,11,11,03,00,AAXX 11031 40872 42960 66666==",{retrievedAtUtc:"2026-11-11T22:00:00Z"});
+assert.equal(sentinel.observations[0].value_mm,666);
+assert.equal(sentinel.observations[0].quality_status,"suspect");
+assert.ok(sentinel.observations[0].quality_flags.includes("suspect_repeated_station_code_666"));
+assert.ok(sentinel.observations[0].quality_flags.includes("synop_ir_indicator_conflicts_with_group6"));
+const sectionConflict=parseOgimetSynopCsv("40872,2026,11,11,03,00,AAXX 11031 40872 22960 60051 333 82635==",{retrievedAtUtc:"2026-11-11T22:00:00Z"});
+assert.equal(sectionConflict.observations[0].quality_status,"suspect");
+assert.ok(sectionConflict.observations[0].quality_flags.includes("synop_ir_section_location_conflict"));
 console.log("PASS: OGIMET SYNOP decoding, WMO precipitation codes, exact tR intervals, and complete non-overlapping 24h aggregation.");
