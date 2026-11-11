@@ -113,7 +113,7 @@ for (const [n,required] of [[31,28],[40,36]]) {
 const mixedInvalid=[0,5,4.999,10,25,null,undefined,NaN,Infinity,-0.01];
 const mixedPolicy=createEnsembleCoveragePolicy(mixedInvalid.length,"candidate-90-v1");
 assert.equal(mixedPolicy.minValidMembers,9);
-const mixedResult=ensembleDailyExceedance(mixedInvalid,5,{...mixedPolicy,minValidMembers:5});
+const mixedResult=ensembleDailyExceedance(mixedInvalid,5,{...mixedPolicy,minValidMembers:5,minMemberCoverage:0.5});
 assert.equal(mixedResult.validMembers,5);
 assert.equal(mixedResult.exceedances,3);
 assert.equal(mixedResult.probability,3/5);
