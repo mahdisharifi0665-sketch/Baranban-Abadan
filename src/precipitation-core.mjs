@@ -27,10 +27,10 @@ export function aggregatePrecipitation(intervals, window, expectedUnit = "mm") {
       const start = instant(item.start, "interval start");
       const end = instant(item.end, "interval end");
       if (end <= start) return {ok:false, reason:"invalid_interval"};
-      if (item.unit !== expectedUnit) return {ok:false, reason:"unit_mismatch"};
-      if (!Number.isFinite(item.value) || item.value < 0) return {ok:false, reason:"missing_or_invalid_value"};
       if (end <= windowStart || start >= windowEnd) continue;
       if (start < windowStart || end > windowEnd) return {ok:false, reason:"interval_crosses_window_boundary"};
+      if (item.unit !== expectedUnit) return {ok:false, reason:"unit_mismatch"};
+      if (!Number.isFinite(item.value) || item.value < 0) return {ok:false, reason:"missing_or_invalid_value"};
       if (start < cursor) return {ok:false, reason:"overlap_or_duplicate"};
       if (start > cursor) return {ok:false, reason:"time_gap"};
       totalScaled += Math.round(item.value * 1_000_000);
