@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mahdisharifi0665-sketch/Baranban-Abadan/blob/main/schemas/forecast-record.schema.json",
+  "title": "Baranban Forecast Record",
+  "description": "Versioned normalized record for raw and derived forecast data. Timestamps are UTC ISO-8601; precipitation intervals are half-open.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "model_id",
+    "product_type",
+    "model_run_time_utc",
+    "issue_time_utc",
+    "valid_start_utc",
+    "valid_end_utc",
+    "retrieved_at_utc",
+    "latitude",
+    "longitude",
+    "variable",
+    "value",
+    "unit",
+    "quality_flags"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "product_type": {
+      "enum": [
+        "deterministic",
+        "ensemble_member",
+        "ensemble_statistic",
+        "observation",
+        "derived"
+      ]
+    },
+    "model_run_time_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issue_time_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "retrieved_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_start_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_end_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lead_time_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "grid_cell": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "selection_method": {
+          "enum": [
+            "nearest",
+            "bilinear",
+            "provider_land",
+            "provider_sea",
+            "native_grid",
+            "unknown"
+          ]
+        },
+        "distance_km": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "elevation_m": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "land_sea_mask": {
+          "enum": [
+            "land",
+            "sea",
+            "coast",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "variable": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "accumulation_period_seconds": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "ensemble_member": {
+      "type": [
+        "string",
+        "integer",
+        "null"
+      ]
+    },
+    "ensemble_member_count_total": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "ensemble_member_count_valid": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "quality_flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "raw_payload_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "algorithm_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "derived_from_record_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
