@@ -38,6 +38,11 @@ jobs:
         run: npm run test:observations
       - name: Test observation station registry and provenance guards
         run: npm run test:station-registry
+      - name: Test ERA5 gridded precipitation parser and archive contract
+        run: npm run test:era5-gridded
+      - name: Probe public ERA5 gridded precipitation archive
+        timeout-minutes: 3
+        run: npm run probe:era5-gridded
       - name: Test NOAA GSOD daily observation adapter
         run: npm run test:noaa-gsod
       - name: Probe NOAA GSOD Bandar-e-Dayyer archive and write observation archive
