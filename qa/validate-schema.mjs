@@ -5,13 +5,15 @@ import addFormats from "ajv-formats";
 
 const schema = JSON.parse(fs.readFileSync("schemas/forecast-record.schema.json", "utf8"));
 const observationSchema = JSON.parse(fs.readFileSync("schemas/rain-observation.schema.json", "utf8"));
-const stationRegistrySchema = JSON.parse(fs.readFileSync("schemas/observation-station-registry.schema.json", "utf8"));\nconst griddedPrecipitationSchema = JSON.parse(fs.readFileSync("schemas/gridded-precipitation.schema.json", "utf8"));
+const stationRegistrySchema = JSON.parse(fs.readFileSync("schemas/observation-station-registry.schema.json", "utf8"));
+const griddedPrecipitationSchema = JSON.parse(fs.readFileSync("schemas/gridded-precipitation.schema.json", "utf8"));
 const stationRegistry = JSON.parse(fs.readFileSync("data/observation-station-registry.json", "utf8"));
 const ajv = new Ajv2020({allErrors:true, strict:true, allowUnionTypes:true});
 addFormats(ajv);
 const validate = ajv.compile(schema);
 const validateObservation = ajv.compile(observationSchema);
-const validateStationRegistry = ajv.compile(stationRegistrySchema);\nconst validateGriddedPrecipitation = ajv.compile(griddedPrecipitationSchema);
+const validateStationRegistry = ajv.compile(stationRegistrySchema);
+const validateGriddedPrecipitation = ajv.compile(griddedPrecipitationSchema);
 
 const valid = {
   schema_version:"1.0.0",
