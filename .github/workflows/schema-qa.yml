@@ -48,6 +48,9 @@ jobs:
         run: npm run test:ogimet-synop
       - name: Probe live OGIMET SYNOP observations for Bandar-e-Dayyer
         run: npm run probe:ogimet-synop
+      - name: Discover Kuwait regional SYNOP stations (read-only probe)
+        timeout-minutes: 5
+        run: node qa/probe-kuwait-synop-stations.mjs
       - name: Probe IRIMO WIS2 public SYNOP notification feed
         timeout-minutes: 2
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
