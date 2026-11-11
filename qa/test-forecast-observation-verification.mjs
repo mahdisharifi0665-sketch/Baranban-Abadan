@@ -31,7 +31,7 @@ const ensScore=report.groups.find(x=>x.type==="ensemble");assert.equal(ensScore.
 assert.equal(report.direct_abadan_ground_truth,false);assert.equal(report.calibration_approved,false);
 
 const latestEnd=Date.parse("2026-11-12T18:00:00Z"),now=Date.parse("2026-11-13T05:30:00Z");
-const artifact=(id,created_at,extra={})=>({id,name:"baranban-forecast-archive-"+id,created_at,expired:false,archive_download_url:"https://example.invalid/"+id,...extra});
+const artifact=(id,created_at,extra={})=>({id,name:"baranyar-forecast-archive-"+id,created_at,expired:false,archive_download_url:"https://example.invalid/"+id,...extra});
 const selected=selectForecastArtifactsForVerification([
  artifact(1,"2026-11-11T11:00:00Z"),
  artifact(2,"2026-11-12T19:00:00Z"),
