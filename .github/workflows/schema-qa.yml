@@ -1,0 +1,25 @@
+name: Schema QA
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, audit/pre-engine-hardening]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-forecast-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned validators
+        run: npm install --no-save --no-package-lock ajv@8.17.1 ajv-formats@3.0.1
+      - name: Validate schema and regression cases
+        run: npm run test:schema
