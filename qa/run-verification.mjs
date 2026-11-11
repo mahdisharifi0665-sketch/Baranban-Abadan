@@ -15,7 +15,7 @@ console.log("Listing GitHub forecast archive artifacts (paginated)");
 const inventory=[];
 for(let page=1;page<=5;page++){const listing=await fetch(api+"&page="+page,{headers,signal:AbortSignal.timeout(20000)});if(!listing.ok)throw new Error("GitHub Actions artifact listing failed: HTTP "+listing.status+" "+(await listing.text()).slice(0,400));const pageJson=await listing.json(),items=pageJson.artifacts||[];inventory.push(...items);if(items.length<100)break;}
 const cutoff=Date.now()-30*86400000;
-const candidates=inventory.filter(a=>a&&a.name?.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff);
+const candidates=inventory.filter(a=>a&&a.name?.startsWith("baranyar-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff);
 console.log("Artifact inventory returned "+inventory.length+" records; recent forecast candidates "+candidates.length);
 const artifacts=selectForecastArtifactsForVerification(inventory,observedWindows,{lookbackDays:30,limit:20});
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"baranban-verification-"));
