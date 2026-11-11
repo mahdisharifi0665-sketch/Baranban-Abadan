@@ -5,10 +5,13 @@ import addFormats from "ajv-formats";
 
 const schema = JSON.parse(fs.readFileSync("schemas/forecast-record.schema.json", "utf8"));
 const observationSchema = JSON.parse(fs.readFileSync("schemas/rain-observation.schema.json", "utf8"));
+const stationRegistrySchema = JSON.parse(fs.readFileSync("schemas/observation-station-registry.schema.json", "utf8"));
+const stationRegistry = JSON.parse(fs.readFileSync("data/observation-station-registry.json", "utf8"));
 const ajv = new Ajv2020({allErrors:true, strict:true, allowUnionTypes:true});
 addFormats(ajv);
 const validate = ajv.compile(schema);
 const validateObservation = ajv.compile(observationSchema);
+const validateStationRegistry = ajv.compile(stationRegistrySchema);
 
 const valid = {
   schema_version:"1.0.0",
@@ -59,4 +62,5 @@ const observation = {
 assert.equal(validateObservation(observation),true,JSON.stringify(validateObservation.errors));
 assert.equal(validateObservation({...observation,value_mm:-1}),false,"negative observed rainfall must fail");
 assert.equal(validateObservation({...observation,station:{...observation.station,longitude:181}}),false,"invalid station longitude must fail");
-console.log("PASS: forecast and rain-observation schemas compile; structural and semantic regression checks passed.");
+assert.equal(validateStationRegistry(stationRegistry),true,JSON.stringify(validateStationRegistry.errors));
+console.log("PASS: forecast, rain-observation and observation-station registry schemas compile; structural and semantic regression checks passed.");
