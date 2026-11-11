@@ -12,7 +12,7 @@ const observedWindows=observationArchive.daily_non_overlapping_24h||[];
 const headers={authorization:"Bearer "+token,accept:"application/vnd.github+json","x-github-api-version":"2022-11-28"};
 const api="https://api.github.com/repos/"+repository+"/actions/artifacts?per_page=100";
 console.log("Listing GitHub forecast archive artifacts");
-const listing=await fetch(api,{headers,signal:AbortSignal.timeout(45000)});
+const listing=await fetch(api,{headers,signal:AbortSignal.timeout(20000)});
 if(!listing.ok)throw new Error("GitHub Actions artifact listing failed: HTTP "+listing.status+" "+(await listing.text()).slice(0,400));
 const listingJson=await listing.json(),cutoff=Date.now()-30*86400000;
 console.log("Artifact inventory returned "+(listingJson.artifacts||[]).length+" records");
@@ -20,7 +20,7 @@ const artifacts=(listingJson.artifacts||[]).filter(a=>a.name?.startsWith("baranb
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"baranban-verification-"));
 const archives=[],downloadErrors=[];
 console.log("Forecast artifacts selected for verification: "+artifacts.length+"; observation windows: "+observedWindows.length);
-async function loadArtifact(artifact){try{console.log("Downloading forecast artifact "+artifact.id);const response=await fetch(artifact.archive_download_url,{headers,signal:AbortSignal.timeout(45000)});if(!response.ok)throw new Error("download HTTP "+response.status);const zipPath=path.join(temp,String(artifact.id)+".zip");fs.writeFileSync(zipPath,Buffer.from(await response.arrayBuffer()));const names=execFileSync("unzip",["-Z1",zipPath],{encoding:"utf8"}).split(/\r?\n/).filter(x=>x.endsWith(".json"));if(!names.length)throw new Error("artifact zip contains no JSON archive");for(const name of names){const raw=execFileSync("unzip",["-p",zipPath,name],{encoding:"utf8",maxBuffer:60*1024*1024});const parsed=JSON.parse(raw);if(parsed.archive_schema_version==="1.0.0"&&Array.isArray(parsed.products))archives.push(parsed);}return;}catch(error){downloadErrors.push({artifact_id:artifact.id,name:artifact.name,error:String(error)});}}
+async function loadArtifact(artifact){try{console.log("Downloading forecast artifact "+artifact.id);const response=await fetch(artifact.archive_download_url,{headers,signal:AbortSignal.timeout(20000)});if(!response.ok)throw new Error("download HTTP "+response.status);const zipPath=path.join(temp,String(artifact.id)+".zip");fs.writeFileSync(zipPath,Buffer.from(await response.arrayBuffer()));const names=execFileSync("unzip",["-Z1",zipPath],{encoding:"utf8",timeout:20000}).split(/\r?\n/).filter(x=>x.endsWith(".json"));if(!names.length)throw new Error("artifact zip contains no JSON archive");for(const name of names){const raw=execFileSync("unzip",["-p",zipPath,name],{encoding:"utf8",maxBuffer:60*1024*1024,timeout:20000});const parsed=JSON.parse(raw);if(parsed.archive_schema_version==="1.0.0"&&Array.isArray(parsed.products))archives.push(parsed);}return;}catch(error){downloadErrors.push({artifact_id:artifact.id,name:artifact.name,error:String(error)});}}
 for(let i=0;i<artifacts.length;i+=4)await Promise.all(artifacts.slice(i,i+4).map(loadArtifact));
 const localDir="artifacts/forecast-archive";if(fs.existsSync(localDir)){for(const name of fs.readdirSync(localDir).filter(x=>x.endsWith(".json"))){const parsed=JSON.parse(fs.readFileSync(path.join(localDir,name),"utf8"));archives.push(parsed);}}
 archives.sort((a,b)=>Date.parse(a.generated_at_utc)-Date.parse(b.generated_at_utc));
