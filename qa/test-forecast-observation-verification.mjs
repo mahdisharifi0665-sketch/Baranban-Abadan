@@ -42,7 +42,9 @@ const selected=selectForecastArtifactsForVerification([
  artifact(4,"2026-11-11T12:00:00Z",{expired:true}),
  artifact(5,"2026-11-11T13:00:00Z",{name:"baranban-observation-archive-5"})
 ],[{window_start_utc:"2026-11-11T18:00:00Z",window_end_utc:"2026-11-12T18:00:00Z"}],{nowMs:now,lookbackDays:30});
-assert.deepEqual(selected.map(x=>x.id),[1,8]);
+assert.deepEqual(selected.map(x=>x.id),[2,7,1,8],"late-uploaded archives must remain candidates; archive issue time is checked after download");
+const lateIssuedArchive={...archive,generated_at_utc:"2026-11-12T19:00:00Z"};
+assert.equal(buildVerificationPairs(lateIssuedArchive,observed).pairs.length,0,"an archive actually issued after the observation window must not create a verification pair");
 assert.deepEqual(selectForecastArtifactsForVerification([artifact(6,"2026-11-11T11:00:00Z")],[{window_start_utc:"2026-11-12T18:00:00Z",window_end_utc:"2026-11-13T18:00:00Z"}],{nowMs:now}),[artifact(6,"2026-11-11T11:00:00Z")]);
 
 console.log("PASS: deterministic MAE/bias/RMSE, threshold contingency, ensemble strict probability, Brier and reliability scoring.");
