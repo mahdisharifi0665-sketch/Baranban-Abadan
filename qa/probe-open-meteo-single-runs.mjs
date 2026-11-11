@@ -17,7 +17,7 @@ async function probeModel(model,runParam,runUtc,targetWindow){
  const params=new URLSearchParams({latitude:String(TARGET.latitude),longitude:String(TARGET.longitude),models:model,run:runParam,hourly:"precipitation",forecast_days:"10",timezone:"UTC"});
  const url=`https://single-runs-api.open-meteo.com/v1/forecast?${params.toString()}`;
  try{
-  const response=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{"user-agent":"Baranban-Abadan/5.1 historical single-run verification"}});
+  const response=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{"user-agent":"Baranban-Abdan/6.0 historical single-run verification"}});
   const body=await response.text();
   if(!response.ok)return {model,run_utc:runUtc,http_status:response.status,available:false,error:body.slice(0,400),url};
   const raw=JSON.parse(body),times=raw.hourly?.time,values=raw.hourly?.precipitation;
