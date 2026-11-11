@@ -1,0 +1,17 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "$id":"https://github.com/mahdisharifi0665-sketch/Baranban-Abadan/blob/main/schemas/gridded-precipitation.schema.json",
+ "title":"Baranban Gridded Precipitation Estimate",
+ "type":"object","additionalProperties":false,
+ "required":["record_schema_version","record_id","source","target","grid_cell","interval_start_utc","interval_end_utc","retrieved_at_utc","value_mm","quality_status","quality_flags"],
+ "properties":{
+  "record_schema_version":{"const":"1.0.0"},
+  "record_id":{"type":"string","minLength":1},
+  "source":{"type":"object","additionalProperties":false,"required":["provider","dataset","source_type","source_url","variable","unit","nominal_grid_resolution_degrees","temporal_semantics"],"properties":{"provider":{"type":"string"},"dataset":{"type":"string"},"source_type":{"const":"reanalysis_grid_estimate"},"source_url":{"type":"string","format":"uri"},"variable":{"const":"precipitation"},"unit":{"const":"mm"},"nominal_grid_resolution_degrees":{"type":"number","exclusiveMinimum":0},"temporal_semantics":{"const":"preceding_hour_sum"}}},
+  "target":{"type":"object","additionalProperties":false,"required":["name","latitude","longitude"],"properties":{"name":{"const":"Abdan"},"latitude":{"const":28.0801523},"longitude":{"const":51.77113355}}},
+  "grid_cell":{"type":"object","additionalProperties":false,"required":["latitude","longitude","selection"],"properties":{"latitude":{"type":"number","minimum":-90,"maximum":90},"longitude":{"type":"number","minimum":-180,"maximum":180},"selection":{"const":"nearest"}}},
+  "interval_start_utc":{"type":"string","format":"date-time"},"interval_end_utc":{"type":"string","format":"date-time"},"retrieved_at_utc":{"type":"string","format":"date-time"},
+  "value_mm":{"type":["number","null"],"minimum":0},"quality_status":{"enum":["raw","missing"]},"quality_flags":{"type":"array","uniqueItems":true,"items":{"type":"string"}}
+ },
+ "allOf":[{"if":{"properties":{"quality_status":{"const":"missing"}}},"then":{"properties":{"value_mm":{"type":"null"}}}},{"if":{"properties":{"quality_status":{"const":"raw"}}},"then":{"properties":{"value_mm":{"type":"number","minimum":0}}}}]
+}
