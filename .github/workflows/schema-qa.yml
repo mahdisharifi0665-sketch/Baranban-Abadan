@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 concurrency:
   # Preserve the original group key so new pushes can supersede stale queued
@@ -32,47 +31,6 @@ jobs:
         with:
           node-version: "22"
           package-manager-cache: false
-      - name: Delete obsolete orphaned queued push runs from this workflow
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPOSITORY: ${{ github.repository }}
-          GH_RUN_ID: ${{ github.run_id }}
-          GH_API_URL: ${{ github.api_url }}
-        run: |
-          node --input-type=module <<'NODE'
-          const { GH_TOKEN, GH_REPOSITORY, GH_RUN_ID, GH_API_URL } = process.env;
-          const headers = {
-            Accept: "application/vnd.github+json",
-            Authorization: `Bearer ${GH_TOKEN}`,
-            "X-GitHub-Api-Version": "2022-11-28"
-          };
-          const endpoint = `${GH_API_URL}/repos/${GH_REPOSITORY}/actions/workflows/schema-qa.yml/runs?status=queued&per_page=100`;
-          const listing = await fetch(endpoint, { headers });
-          if (!listing.ok) throw new Error(`Could not list queued runs: HTTP ${listing.status} ${await listing.text()}`);
-          const payload = await listing.json();
-          const obsolete = (payload.workflow_runs || []).filter(run =>
-            String(run.id) !== String(GH_RUN_ID) &&
-            run.event === "push" &&
-            run.head_branch === "main" &&
-            Number(run.id) < Number(GH_RUN_ID)
-          );
-          console.log(`Found ${obsolete.length} obsolete queued push run(s) to delete.`);
-          let failures = 0;
-          for (const run of obsolete) {
-            const response = await fetch(
-              `${GH_API_URL}/repos/${GH_REPOSITORY}/actions/runs/${run.id}`,
-              { method: "DELETE", headers }
-            );
-            if (response.status === 204 || response.status === 404) {
-              console.log(`Deleted obsolete run ${run.id} (${run.head_sha.slice(0, 10)}); HTTP ${response.status}.`);
-            } else {
-              failures++;
-              console.error(`Could not delete run ${run.id}: HTTP ${response.status} ${await response.text()}`);
-            }
-          }
-          if (failures) throw new Error(`${failures} obsolete queued run(s) could not be deleted.`);
-          NODE
       - name: Install pinned validators
         run: npm install --no-save --no-package-lock ajv@8.20.0 ajv-formats@3.0.1 mqtt@5.14.1
       - name: Validate schema and regression cases
