@@ -11,6 +11,8 @@ const observed=[{station_id:"WMO-40872",window_start_utc:"2026-11-10T00:00:00Z",
 assert.throws(()=>buildVerificationPairs({...archive,target:{...archive.target,latitude:27.95}},observed),/target_mismatch_abdan_reference/);
 const built=buildVerificationPairs(archive,observed);
 assert.equal(built.errors.length,0);assert.equal(built.pairs.length,2);
+const legacyNearbyArchive={...archive,target:{...archive.target,latitude:28.0794,longitude:51.7694}};
+assert.equal(buildVerificationPairs(legacyNearbyArchive,observed).pairs.length,2,"historical archive target inside the Abdan 5 km scope remains verifiable");
 const deterministic=built.pairs.find(x=>x.product_type==="deterministic");
 assert.equal(deterministic.forecast_total_mm,6);
 const utcArchive={...archive,products:[{...archive.products[0],verification_raw_payload:payload({precipitation:values(0.25)}),verification_timezone:"UTC"}]};
