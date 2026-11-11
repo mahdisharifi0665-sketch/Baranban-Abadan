@@ -58,7 +58,7 @@ async function ensemble(model) {
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   const precipitation = inspectHourly(json,"precipitation");
   assert.ok(precipitation.variableFields > 0, model + " returned no precipitation member fields");
-  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone}, precipitation, cape:inspectHourly(json,"cape")};
+  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, precipitation, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
