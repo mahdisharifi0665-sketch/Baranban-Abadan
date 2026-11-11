@@ -12,6 +12,8 @@
     "test:noaa-gsod":"node qa/test-noaa-gsod-observations.mjs",
     "test:ogimet-synop":"node qa/test-ogimet-synop-observations.mjs",
     "probe:ogimet-synop":"node qa/probe-ogimet-synop.mjs",
+    "test:verification":"node qa/test-forecast-observation-verification.mjs",
+    "verify:observations":"node qa/run-verification.mjs",
     "probe:noaa-gsod":"node qa/probe-noaa-gsod.mjs"
   },
   "devDependencies":{"ajv":"8.20.0","ajv-formats":"3.0.1"}

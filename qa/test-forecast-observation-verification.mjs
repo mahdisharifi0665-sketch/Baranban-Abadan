@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import {buildVerificationPairs,scoreVerificationPairs} from "../src/forecast-observation-verification.mjs";
+const times=[];for(let i=1;i<=24;i++){const d=new Date(Date.parse("2026-11-10T00:00:00Z")+i*3600000);times.push(d.toISOString().slice(0,16));}
+const values=v=>Array(24).fill(v);
+const payload=hourly=>JSON.stringify({hourly:{time:times,...hourly},hourly_units:{precipitation:"mm"}});
+const archive={archive_id:"test-cycle",generated_at_utc:"2026-11-09T12:00:00Z",target:{timezone:"UTC"},products:[
+ {type:"deterministic",model:"ecmwf_ifs",raw_payload:payload({precipitation:values(0.25)})},
+ {type:"ensemble",model:"ecmwf_ifs025_ensemble",raw_payload:payload({precipitation_member01:values(0.25),precipitation_member02:values(0.2),precipitation_member03:values(0.1)})}
+]};
+const observed=[{station_id:"WMO-40872",window_start_utc:"2026-11-10T00:00:00Z",window_end_utc:"2026-11-11T00:00:00Z",total_mm:5}];
+const built=buildVerificationPairs(archive,observed);
+assert.equal(built.errors.length,0);assert.equal(built.pairs.length,2);
+const deterministic=built.pairs.find(x=>x.product_type==="deterministic");
+assert.equal(deterministic.forecast_total_mm,6);assert.equal(deterministic.error_mm,1);assert.equal(deterministic.lead_bin,"0-24h");
+const ensemble=built.pairs.find(x=>x.product_type==="ensemble");
+assert.equal(ensemble.valid_members,3);assert.equal(ensemble.forecast_mean_mm,4.4);assert.equal(ensemble.probabilities["5"].probability,1/3);assert.equal(ensemble.probabilities["10"].probability,0);
+const report=scoreVerificationPairs(built.pairs,{minimumSamples:1});
+const detScore=report.groups.find(x=>x.type==="deterministic");assert.equal(detScore.continuous.mae_mm,1);assert.equal(detScore.thresholds["5"].tp,1);
+const ensScore=report.groups.find(x=>x.type==="ensemble");assert.equal(ensScore.thresholds["5"].brier_score,Number(((1/3-1)**2).toFixed(5)));
+assert.equal(report.direct_abadan_ground_truth,false);assert.equal(report.calibration_approved,false);
+console.log("PASS: deterministic MAE/bias/RMSE, threshold contingency, ensemble strict probability, Brier and reliability scoring.");

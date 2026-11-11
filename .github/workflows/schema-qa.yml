@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   validate-forecast-schema:
@@ -47,13 +48,26 @@ jobs:
         run: npm run test:ogimet-synop
       - name: Probe live OGIMET SYNOP observations for Bandar-e-Dayyer
         run: npm run probe:ogimet-synop
+      - name: Test forecast and observation verification metrics
+        run: npm run test:verification
       - name: Probe live Open-Meteo model endpoints for Abadan and write archive
         run: node qa/probe-open-meteo.mjs
+      - name: Score archived forecasts against complete regional 24-hour observations
+        run: npm run verify:observations
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload forecast-cycle archive (90-day interim retention)
         uses: actions/upload-artifact@v4
         with:
           name: baranban-forecast-archive-${{ github.run_id }}
           path: artifacts/forecast-archive/*.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload regional verification report (90-day interim retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: baranban-verification-report-${{ github.run_id }}
+          path: artifacts/verification/verification-report.json
           if-no-files-found: error
           retention-days: 90
       - name: Upload regional observation archive (90-day interim retention)
