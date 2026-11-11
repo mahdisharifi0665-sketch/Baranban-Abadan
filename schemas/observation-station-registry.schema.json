@@ -24,7 +24,7 @@
       ],
       "properties": {
         "name": {
-          "const": "Abadan"
+          "const": "Abdan"
         },
         "latitude": {
           "const": 28.0801523
@@ -116,7 +116,8 @@
               "nearest_historical_reference",
               "regional_comparison",
               "supplementary_synoptic",
-              "local_reported_gauge"
+              "local_reported_gauge",
+              "distant_synoptic_context"
             ]
           },
           "precipitation_status": {
