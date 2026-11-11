@@ -137,9 +137,11 @@ async function ensemble(model) {
     const valid=vals.filter(v=>Number.isFinite(v)&&v>=0);
     const negativeDailyValues=vals.filter(v=>Number.isFinite(v)&&v<0).length;
     const total=dailyValuesByMember.length;
-    const policy={minValidMembers:total,minMemberCoverage:1};
-    const probabilities=Object.fromEntries([5,10,25].map(th=>[String(th),ensembleDailyExceedance(vals,th,policy).probability]));
-    return {date,validMembers:valid.length,totalMembers:total,negativeDailyValues,probabilitiesAllMembersComplete:probabilities};
+    const strictPolicy={minValidMembers:total,minMemberCoverage:1};
+    const candidate90Policy={minValidMembers:Math.ceil(total*0.9),minMemberCoverage:0.9};
+    const probabilitiesStrict=Object.fromEntries([5,10,25].map(th=>[String(th),ensembleDailyExceedance(vals,th,strictPolicy).probability]));
+    const probabilities90=Object.fromEntries([5,10,25].map(th=>[String(th),ensembleDailyExceedance(vals,th,candidate90Policy).probability]));
+    return {date,validMembers:valid.length,totalMembers:total,negativeDailyValues,probabilitiesAllMembersComplete:probabilitiesStrict,probabilitiesAt90PercentCoverageCandidate:probabilities90};
   });
   const dailyAggregation=Array.from({length:DAYS},(_,i)=>{
     const date=addDays(firstForecastDate,i), win=calendarDayWindow(date,TIMEZONE);
@@ -156,7 +158,7 @@ async function ensemble(model) {
   });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:"diagnostic only: requires every ensemble member to have a complete 24-hour window"}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:"strict diagnostic requires every member; 90% candidate is diagnostic only and not an approved operational policy"}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
