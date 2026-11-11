@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {createHash} from "node:crypto";
-const target={latitude:28.0794,longitude:51.7694};
+const target={latitude:28.0801523,longitude:51.77113355};
 function csvLine(line){const out=[];let s="",q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){s+='"';i++;}else q=!q;}else if(c===","&&!q){out.push(s);s="";}else s+=c;}if(q)throw new Error("unterminated CSV quote");out.push(s);return out;}
 function rows(text){const ls=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(x=>x.trim());if(ls.length<2)return [];const h=csvLine(ls[0]).map(x=>x.trim());return ls.slice(1).map(line=>{const c=csvLine(line);return Object.fromEntries(h.map((k,i)=>[k,(c[i]??"").trim()]));});}
 function dist(a,b){const r=x=>x*Math.PI/180,d1=r(b.latitude-a.latitude),d2=r(b.longitude-a.longitude),x=Math.sin(d1/2)**2+Math.cos(r(a.latitude))*Math.cos(r(b.latitude))*Math.sin(d2/2)**2;return 6371.0088*2*Math.asin(Math.sqrt(x));}
