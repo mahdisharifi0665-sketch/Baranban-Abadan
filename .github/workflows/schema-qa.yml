@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, audit/pre-engine-hardening]
+    branches: [main]
 
 permissions:
   contents: read
@@ -50,7 +50,7 @@ jobs:
         run: npm run probe:ogimet-synop
       - name: Probe IRIMO WIS2 public SYNOP notification feed
         timeout-minutes: 2
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: node qa/probe-irimo-wis2.mjs
       - name: Probe Open-Meteo historical single-run archives for recent observed windows
         timeout-minutes: 5
@@ -72,7 +72,7 @@ jobs:
       - name: Upload forecast-cycle archive (90-day interim retention)
         uses: actions/upload-artifact@v4
         with:
-          name: baranban-forecast-archive-${{ github.run_id }}
+          name: baranyar-forecast-archive-${{ github.run_id }}
           path: artifacts/forecast-archive/*.json
           if-no-files-found: error
           retention-days: 90
@@ -80,21 +80,21 @@ jobs:
         if: hashFiles('artifacts/verification/single-run-backtest.json') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: baranban-single-run-backtest-${{ github.run_id }}
+          name: baranyar-single-run-backtest-${{ github.run_id }}
           path: artifacts/verification/single-run-backtest.json
           if-no-files-found: error
           retention-days: 90
       - name: Upload regional verification report (90-day interim retention)
         uses: actions/upload-artifact@v4
         with:
-          name: baranban-verification-report-${{ github.run_id }}
+          name: baranyar-verification-report-${{ github.run_id }}
           path: artifacts/verification/verification-report.json
           if-no-files-found: error
           retention-days: 90
       - name: Upload regional observation archive (90-day interim retention)
         uses: actions/upload-artifact@v4
         with:
-          name: baranban-observation-archive-${{ github.run_id }}
+          name: baranyar-observation-archive-${{ github.run_id }}
           path: artifacts/observation-archive/*.json
           if-no-files-found: error
           retention-days: 90
