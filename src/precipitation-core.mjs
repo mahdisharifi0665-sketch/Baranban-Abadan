@@ -33,7 +33,10 @@ export function aggregatePrecipitation(intervals, window, expectedUnit = "mm") {
       if (!Number.isFinite(item.value) || item.value < 0) return {ok:false, reason:"missing_or_invalid_value"};
       if (start < cursor) return {ok:false, reason:"overlap_or_duplicate"};
       if (start > cursor) return {ok:false, reason:"time_gap"};
-      totalScaled += Math.round(item.value * 1_000_000);
+      const scaledValue = Math.round(item.value * 1_000_000);
+      if (!Number.isSafeInteger(scaledValue)) return {ok:false, reason:"numeric_overflow"};
+      totalScaled += scaledValue;
+      if (!Number.isSafeInteger(totalScaled)) return {ok:false, reason:"numeric_overflow"};
       cursor = end;
     }
 
@@ -99,6 +102,7 @@ export function ensembleExceedance(members, window, thresholdMm, config) {
     return {probability:null, reason:"insufficient_valid_members", ...coverageMetadata(config,totalMembers,validMembers,requiredMembers)};
   }
   const thresholdScaled = Math.round(thresholdMm * 1_000_000);
+  if (!Number.isSafeInteger(thresholdScaled)) return {probability:null,reason:"invalid_threshold",...coverageMetadata(config,totalMembers,validMembers,requiredMembers)};
   const exceedances = validTotals.filter(total => total >= thresholdScaled).length;
   return {
     probability:exceedances / validMembers,
@@ -121,7 +125,7 @@ export function ensembleDailyExceedance(memberTotals, thresholdMm, config) {
       !Number.isFinite(config.minMemberCoverage) || config.minMemberCoverage<=0 || config.minMemberCoverage>1) {
     return {probability:null,reason:"coverage_policy_not_configured",validMembers:0,totalMembers:memberTotals.length};
   }
-  const valid=memberTotals.filter(v=>Number.isFinite(v)&&v>=0);
+  const valid=memberTotals.filter(v=>Number.isFinite(v)&&v>=0&&Number.isSafeInteger(Math.round(v*1_000_000)));
   const totalMembers=memberTotals.length;
   const validMembers=valid.length;
   const requiredMembers=Math.max(config.minValidMembers,Math.ceil(totalMembers*config.minMemberCoverage));
@@ -129,6 +133,7 @@ export function ensembleDailyExceedance(memberTotals, thresholdMm, config) {
     return {probability:null,reason:"insufficient_valid_members",...coverageMetadata(config,totalMembers,validMembers,requiredMembers)};
   }
   const thresholdScaled=Math.round(thresholdMm*1_000_000);
+  if(!Number.isSafeInteger(thresholdScaled))return {probability:null,reason:"invalid_threshold",...coverageMetadata(config,totalMembers,validMembers,requiredMembers)};
   const exceedances=valid.filter(v=>Math.round(v*1_000_000)>=thresholdScaled).length;
   return {probability:exceedances/validMembers,exceedances,...coverageMetadata(config,totalMembers,validMembers,requiredMembers),thresholdMm,comparison:">="};
 }
