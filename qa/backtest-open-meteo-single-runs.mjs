@@ -14,7 +14,7 @@ const results=new Array(tasks.length),pairs=[],headers={"user-agent":"Baranban-A
 async function fetchTask(task){
  const issueUtc=task.run+":00Z",issue=Date.parse(issueUtc),start=Date.parse(task.window.window_start_utc),end=Date.parse(task.window.window_end_utc);
  const leadStart=(start-issue)/3600000,leadEnd=(end-issue)/3600000;
- const url="https://single-runs-api.open-meteo.com/v1/forecast?latitude=28.0794&longitude=51.7694&models="+task.model+"&run="+encodeURIComponent(task.run)+"&hourly=precipitation&forecast_days=2&timezone=UTC";
+ const url="https://single-runs-api.open-meteo.com/v1/forecast?latitude=28.0801523&longitude=51.77113355&models="+task.model+"&run="+encodeURIComponent(task.run)+"&hourly=precipitation&forecast_days=2&timezone=UTC";
  for(let attempt=0;attempt<2;attempt++){try{
   const response=await fetch(url,{headers,signal:AbortSignal.timeout(20000)});const body=await response.text();
   if(!response.ok){if(attempt===0&&[429,500,502,503,504].includes(response.status)){await new Promise(resolve=>setTimeout(resolve,700));continue;}return {model:task.model,run_utc:issueUtc,window_end_utc:task.window.window_end_utc,available:false,http_status:response.status,error:body.slice(0,350),url};}
