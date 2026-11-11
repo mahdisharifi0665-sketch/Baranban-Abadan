@@ -32,6 +32,12 @@ const missing=series(Array(24).fill(0)); missing[4]={...missing[4],value:null};
 assert.equal(aggregatePrecipitation(missing,window).reason,"missing_or_invalid_value");
 const negative=series(Array(24).fill(0)); negative[4]={...negative[4],value:-0.1};
 assert.equal(aggregatePrecipitation(negative,window).reason,"missing_or_invalid_value");
+const numericOverflow=series(Array(24).fill(0)); numericOverflow[0]={...numericOverflow[0],value:Number.MAX_VALUE};
+assert.equal(aggregatePrecipitation(numericOverflow,window).reason,"numeric_overflow","finite values that overflow fixed-point scaling must be rejected");
+assert.equal(ensembleDailyExceedance([Number.MAX_VALUE,5,0],5,{minValidMembers:2,minMemberCoverage:0.5}).validMembers,2,"unsafe daily member totals must not enter the ensemble denominator");
+assert.equal(ensembleDailyExceedance([1,2],Number.MAX_VALUE,{minValidMembers:2,minMemberCoverage:1}).reason,"invalid_threshold");
+assert.equal(ensembleExceedance([{intervals:numericOverflow}],window,5,{minValidMembers:1,minMemberCoverage:1}).probability,null);
+
 const wrongUnit=series(Array(24).fill(0)); wrongUnit[4]={...wrongUnit[4],unit:"mm/h"};
 assert.equal(aggregatePrecipitation(wrongUnit,window).reason,"unit_mismatch");
 assert.equal(aggregatePrecipitation(series(Array(24).fill(0)),{start:t(24),end:t(0)}).reason,"invalid_window");
