@@ -205,6 +205,31 @@
           }
         }
       }
+    },
+    "distance_policy_km": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_network_max",
+        "regional_support_max",
+        "distant_context_min_exclusive",
+        "description"
+      ],
+      "properties": {
+        "local_network_max": {
+          "const": 100
+        },
+        "regional_support_max": {
+          "const": 250
+        },
+        "distant_context_min_exclusive": {
+          "const": 250
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20
+        }
+      }
     }
   }
 }
