@@ -85,7 +85,8 @@ async function deterministic(model) {
   const dailyTotals=Array.from({length:DAYS},(_,i)=>{
     const date=addDays(firstForecastDate,i), win=calendarDayWindow(date,TIMEZONE);
     const result=aggregatePrecipitation(intervals,win);
-    return {date,totalMm:result.ok?result.totalMm:null,reason:result.ok?null:result.reason};
+    const invalidSamples=intervals.filter(x=>Date.parse(x.start)<Date.parse(win.end)&&Date.parse(x.end)>Date.parse(win.start)&&(!Number.isFinite(x.value)||x.value<0)).slice(0,5);
+    return {date,totalMm:result.ok?result.totalMm:null,reason:result.ok?null:result.reason,invalidSamples};
   });
   return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, cape:inspectHourly(json,"cape"), requestedWindow};
 }
@@ -110,9 +111,11 @@ async function ensemble(model) {
     const reasonCounts={};
     for (const item of perMember) if (!item.ok) reasonCounts[item.reason]=(reasonCounts[item.reason]||0)+1;
     const firstFailure=perMember.find(x=>!x.ok) || null;
+    const firstFailureIntervals=firstFailure ? memberSeries.find(m=>m.id===firstFailure.id)?.intervals : [];
+    const invalidSamples=(firstFailureIntervals||[]).filter(x=>Date.parse(x.start)<Date.parse(win.end)&&Date.parse(x.end)>Date.parse(win.start)&&(!Number.isFinite(x.value)||x.value<0)).slice(0,5);
     const policy={minValidMembers:memberSeries.length,minMemberCoverage:1};
     const probabilities=Object.fromEntries([5,10,25].map(threshold=>[String(threshold),ensembleExceedance(memberSeries,win,threshold,policy).probability]));
-    return {date,validMembers,totalMembers:memberSeries.length,reasonCounts,firstFailure:firstFailure?{id:firstFailure.id,reason:firstFailure.reason}:null,probabilityAllMembersComplete:probabilities};
+    return {date,validMembers,totalMembers:memberSeries.length,reasonCounts,firstFailure:firstFailure?{id:firstFailure.id,reason:firstFailure.reason,invalidSamples}:null,probabilityAllMembersComplete:probabilities};
   });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
