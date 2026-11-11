@@ -5,8 +5,8 @@ import {createHash} from "node:crypto";
 import {aggregatePrecipitation,ensembleExceedance,ensembleDailyExceedance,createEnsembleCoveragePolicy} from "../src/precipitation-core.mjs";
 import {buildHourlyPrecipitationIntervals,calendarDayWindow,utcHourlyForecastWindow} from "../src/open-meteo-time-adapter.mjs";
 
-const LAT = 28.0794;
-const LON = 51.7694;
+const LAT = 28.0801523;
+const LON = 51.77113355;
 const TIMEZONE = "Asia/Tehran";
 const DAYS = 10;
 const TIMEOUT_MS = 45000;
