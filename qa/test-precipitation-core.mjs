@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {aggregatePrecipitation, ensembleExceedance} from "../src/precipitation-core.mjs";
+import {aggregatePrecipitation, ensembleExceedance, ensembleDailyExceedance} from "../src/precipitation-core.mjs";
 
 const H = 60*60*1000;
 const t = h => new Date(Date.parse("2026-11-11T00:00:00Z")+h*H).toISOString();
@@ -65,3 +65,12 @@ const allPartial=ensembleExceedance([incompleteMember,incompleteMember],window,5
 assert.equal(allPartial.probability,null);
 assert.equal(allPartial.reason,"insufficient_valid_members");
 console.log("PASS: precipitation core tests (interval coverage, gaps, overlaps, nulls, units, thresholds, ensemble denominator and coverage policy).");
+
+const dailyTotals=[5,4.9,null,10,-0.1];
+const dailyProb=ensembleDailyExceedance(dailyTotals,5,{minValidMembers:3,minMemberCoverage:0.6});
+assert.equal(dailyProb.validMembers,3);
+assert.equal(dailyProb.probability,2/3);
+assert.equal(ensembleDailyExceedance(dailyTotals,5,{minValidMembers:5,minMemberCoverage:1}).probability,null);
+assert.equal(ensembleDailyExceedance(dailyTotals,5).reason,"coverage_policy_not_configured");
+assert.equal(ensembleDailyExceedance(dailyTotals,-1,{minValidMembers:1,minMemberCoverage:0.1}).reason,"invalid_threshold");
+console.log("PASS: daily ensemble exceedance excludes null and negative member totals and enforces coverage policy.");
