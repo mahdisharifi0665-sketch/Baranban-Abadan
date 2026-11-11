@@ -1,7 +1,7 @@
 import {buildHourlyPrecipitationIntervals} from "./open-meteo-time-adapter.mjs";
 import {aggregatePrecipitation,createEnsembleCoveragePolicy,ensembleExceedance} from "./precipitation-core.mjs";
 const THRESHOLDS=[5,10,25];
-export function selectForecastArtifactsForVerification(artifacts,observedWindows,{nowMs=Date.now(),lookbackDays=30,limit=100}={}) {
+export function selectForecastArtifactsForVerification(artifacts,observedWindows,{nowMs=Date.now(),lookbackDays=30,limit=250}={}) {
  if(!Array.isArray(artifacts)||!Array.isArray(observedWindows))throw new TypeError("artifacts_and_observation_windows_required");
  if(!Number.isFinite(nowMs)||!Number.isFinite(lookbackDays)||lookbackDays<=0||!Number.isInteger(limit)||limit<1)throw new TypeError("invalid_artifact_selection_options");
  const latestObservationStart=observedWindows.reduce((max,w)=>{const start=Date.parse(w?.window_start_utc);return Number.isFinite(start)?Math.max(max,start):max;},Number.NEGATIVE_INFINITY);
