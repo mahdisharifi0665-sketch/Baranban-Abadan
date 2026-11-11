@@ -11,7 +11,20 @@ export function selectForecastArtifactsForVerification(artifacts,observedWindows
   .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,limit);
 }
 
-function leadBin(hours){if(hours<=24)return "0-24h";if(hours<=48)return "24-48h";if(hours<=72)return "48-72h";if(hours<=120)return "72-120h";return "120-240h";}
+export function forecastLeadBin(hours){if(!Number.isFinite(hours)||hours<0)return "invalid-lead";if(hours<=24)return "0-24h";if(hours<=48)return "24-48h";if(hours<=72)return "48-72h";if(hours<=120)return "72-120h";if(hours<=240)return "120-240h";return "240h+";}
+
+export function deduplicateForecastArchives(archives){
+ if(!Array.isArray(archives))throw new TypeError("archives_must_be_array");
+ const byId=new Map(),result=[];
+ for(const archive of archives){
+  const id=archive?.archive_id;
+  if(typeof id!=="string"||!id){result.push(archive);continue;}
+  const serialized=JSON.stringify(archive);
+  if(!byId.has(id)){byId.set(id,serialized);result.push(archive);continue;}
+  if(byId.get(id)!==serialized)throw new Error("conflicting_duplicate_forecast_archive:"+id);
+ }
+ return result;
+}
 function median(values){const sorted=[...values].sort((a,b)=>a-b),m=Math.floor(sorted.length/2);return sorted.length%2?sorted[m]:(sorted[m-1]+sorted[m])/2;}
 export function buildVerificationPairs(archive,observedWindows,{timezone=archive?.target?.timezone||"Asia/Tehran"}={}){
  if(!archive||!Array.isArray(archive.products)||!Array.isArray(observedWindows))throw new TypeError("archive_products_and_observed_windows_required");
@@ -32,7 +45,7 @@ export function buildVerificationPairs(archive,observedWindows,{timezone=archive
     if(!Number.isFinite(start)||!Number.isFinite(end)||start<issue||end<=start||!Number.isFinite(observed.total_mm))continue;
     const result=aggregatePrecipitation(intervals,{start:observed.window_start_utc,end:observed.window_end_utc});if(!result.ok)continue;
     const lead=(start-issue)/3600000;
-    pairs.push({product_type:"deterministic",model:product.model,archive_id:archive.archive_id,issue_time_utc:new Date(issue).toISOString(),issue_time_basis:archive.forecast_issue_time_basis||"archive_retrieval_time",archive_generated_at_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:leadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_total_mm:result.totalMm,error_mm:Number((result.totalMm-observed.total_mm).toFixed(6))});
+    pairs.push({product_type:"deterministic",model:product.model,archive_id:archive.archive_id,issue_time_utc:new Date(issue).toISOString(),issue_time_basis:archive.forecast_issue_time_basis||"archive_retrieval_time",archive_generated_at_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:forecastLeadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_total_mm:result.totalMm,error_mm:Number((result.totalMm-observed.total_mm).toFixed(6))});
    }
   } else {
    const members=keys.map(key=>({id:key,intervals:buildHourlyPrecipitationIntervals(times,hourly[key],unit,productTimezone)}));
@@ -44,7 +57,7 @@ export function buildVerificationPairs(archive,observedWindows,{timezone=archive
     const valid=totals.filter(Number.isFinite);if(valid.length===0)continue;
     const probabilities=Object.fromEntries(THRESHOLDS.map(th=>{const r=ensembleExceedance(members,{start:observed.window_start_utc,end:observed.window_end_utc},th,policy);return [String(th),{probability:r.probability,valid_members:r.validMembers,total_members:r.totalMembers,reason:r.reason||null}];}));
     const lead=(start-issue)/3600000;
-    pairs.push({product_type:"ensemble",model:product.model,archive_id:archive.archive_id,issue_time_utc:new Date(issue).toISOString(),issue_time_basis:archive.forecast_issue_time_basis||"archive_retrieval_time",archive_generated_at_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:leadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_mean_mm:Number((valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(6)),forecast_median_mm:Number(median(valid).toFixed(6)),valid_members:valid.length,total_members:members.length,probabilities});
+    pairs.push({product_type:"ensemble",model:product.model,archive_id:archive.archive_id,issue_time_utc:new Date(issue).toISOString(),issue_time_basis:archive.forecast_issue_time_basis||"archive_retrieval_time",archive_generated_at_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:forecastLeadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_mean_mm:Number((valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(6)),forecast_median_mm:Number(median(valid).toFixed(6)),valid_members:valid.length,total_members:members.length,probabilities});
    }
   }
  }catch(error){errors.push({model:product?.model||null,type:product?.type||null,error:String(error)});}}
