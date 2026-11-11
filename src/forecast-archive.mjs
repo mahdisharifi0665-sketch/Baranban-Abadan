@@ -5,7 +5,7 @@ const SHA256 = /^[a-f0-9]{64}$/;
 
 export function createForecastArchiveDocument({generatedAtUtc, target, results, failures = []}) {
   if (typeof generatedAtUtc !== "string" || !ISO_UTC.test(generatedAtUtc) || !Number.isFinite(Date.parse(generatedAtUtc))) throw new TypeError("generatedAtUtc must be an ISO UTC timestamp with milliseconds");
-  if (!target || !Number.isFinite(target.latitude) || !Number.isFinite(target.longitude) || typeof target.timezone !== "string" || !Number.isInteger(target.requestedCalendarDays) || target.requestedCalendarDays < 1) throw new TypeError("Invalid forecast archive target metadata");
+  if (!target || !Number.isFinite(target.latitude) || target.latitude < -90 || target.latitude > 90 || !Number.isFinite(target.longitude) || target.longitude < -180 || target.longitude > 180 || typeof target.timezone !== "string" || !target.timezone.trim() || !Number.isInteger(target.requestedCalendarDays) || target.requestedCalendarDays < 1) throw new TypeError("Invalid forecast archive target metadata");
   if (!Array.isArray(results) || results.length === 0) throw new TypeError("Archive requires at least one successful product");
   if (!Array.isArray(failures)) throw new TypeError("failures must be an array");
   const products = results.map((item) => {
