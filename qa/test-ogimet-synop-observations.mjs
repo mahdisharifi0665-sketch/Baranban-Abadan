@@ -57,4 +57,10 @@ assert.ok(sentinel.observations[0].quality_flags.includes("synop_ir_indicator_co
 const sectionConflict=parseOgimetSynopCsv("40872,2026,11,11,03,00,AAXX 11031 40872 22960 60051 333 82635==",{retrievedAtUtc:"2026-11-11T22:00:00Z"});
 assert.equal(sectionConflict.observations[0].quality_status,"suspect");
 assert.ok(sectionConflict.observations[0].quality_flags.includes("synop_ir_section_location_conflict"));
+const traceTenth=parseOgimetSynopCsv("40872,2026,11,11,03,00,AAXX 11031 40872 12960 69916==",{retrievedAtUtc:"2026-11-11T22:00:00Z"});
+assert.equal(traceTenth.observations[0].value_mm,0.1);
+assert.equal(traceTenth.observations[0].quality_status,"raw");
+assert.ok(!traceTenth.observations[0].quality_flags.includes("suspect_high_accumulation_requires_independent_confirmation"));
+assert.equal(summarizeOgimetSynop(extreme).high_amount_suspect_count,1);
+assert.equal(summarizeOgimetSynop(sentinel).sentinel_666_suspect_count,1);
 console.log("PASS: OGIMET SYNOP decoding, WMO precipitation codes, exact tR intervals, and complete non-overlapping 24h aggregation.");
