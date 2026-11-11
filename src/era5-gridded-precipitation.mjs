@@ -16,7 +16,7 @@ export function parseEra5PrecipitationResponse(payload,{retrievedAtUtc=new Date(
  if(!Number.isFinite(gridLat)||!Number.isFinite(gridLon))throw new TypeError("era5_resolved_grid_coordinates_missing");
  const records=payload.hourly.time.map((time,index)=>{
   if(typeof time!=="string"||!ISO_UTC.test(time))throw new TypeError("era5_timestamp_must_be_utc:"+time);
-  const end=iso(time),start=iso(Date.parse(end)-3600000),raw=payload.hourly.precipitation[index];
+  const end=iso(time.endsWith("Z")?time:time+"Z"),start=iso(Date.parse(end)-3600000),raw=payload.hourly.precipitation[index];
   const missing=raw===null||raw===undefined;
   if(!missing&&(!Number.isFinite(raw)||raw<0))throw new TypeError("era5_precipitation_value_invalid:"+index);
   return {record_schema_version:"1.0.0",record_id:"ERA5-"+end.replace(/[-:]/g,"").replace(".000Z","Z"),source:{provider:"Open-Meteo Historical Weather API",dataset:"ERA5",source_type:"reanalysis_grid_estimate",source_url:"https://archive-api.open-meteo.com/v1/archive",variable:"precipitation",unit:"mm",nominal_grid_resolution_degrees:0.25,temporal_semantics:"preceding_hour_sum"},target:{name:"Abdan",latitude:target.latitude,longitude:target.longitude},grid_cell:{latitude:gridLat,longitude:gridLon,selection:"nearest"},interval_start_utc:start,interval_end_utc:end,retrieved_at_utc:retrieved,value_mm:missing?null:raw,quality_status:missing?"missing":"raw",quality_flags:missing?["source_value_missing"]:["reanalysis_not_ground_station","era5_nominal_grid_0_25_degree","nearest_grid_cell_selection"],};
