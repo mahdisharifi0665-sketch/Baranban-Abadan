@@ -153,3 +153,12 @@
 - ICON قطعی و هر 40 عضو ICON EPS فقط 159/240 ساعت بارش معتبر داشتند؛ کمبود از 2026-11-18 16:00 شروع می‌شود. CAPE تمام اعضای ICON EPS در این بازه null بود.
 - نتیجه: تنها ECMWF ensemble در این نمونه، پوشش کامل 10 روزه داشت؛ این نتیجه مختص همین چرخه/درخواست است و باید در هر اجرا دوباره محاسبه شود.
 - workflow برای حذف هشدار مهاجرت Node 20 به نسخه‌های جاری actions/checkout@v7 و actions/setup-node@v7 ارتقا داده شد؛ اجرای مجدد پس از این تغییر لازم است.
+
+
+## نتیجه run #115 — daily API و cross-check عضو-به-عضو
+- همه آزمون‌های CI موفق شدند؛ schema، هسته بارش، adapter timezone و probe زنده شش محصول.
+- daily API در هر شش محصول داده روزانه برگرداند؛ برای ensemble آرایه‌های روزانه هر عضو جداگانه دریافت شد.
+- deterministic: ECMWF/GFS 10 روز کامل و ICON 6 روز کامل. روزهای کامل daily API و hourly در مدل‌های قطعی بدون mismatch بودند.
+- ensemble: ECMWF روزانه 9 روز با سیاست نامزد 90% و 2 روز با سیاست 100%؛ GFS 9 روز؛ ICON EPS 6 روز. مقادیر منفی daily در ECMWF به‌عنوان عضو نامعتبر حذف شدند.
+- اختلاف daily-vs-hourly بیش از 0.1mm: ECMWF ensemble 24/489، GFS ensemble 2/279، ICON EPS 0/240؛ بیشینه اختلاف ECMWF تا 1.3mm. بنابراین calendar-day totals باید از daily API بیایند و hourly برای rolling 24h جداگانه استفاده شود.
+- سیاست 90% فقط sensitivity candidate است و تا ارزیابی تاریخی و تصویب کاربر عملیاتی نیست.
