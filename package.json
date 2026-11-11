@@ -1,10 +1,12 @@
 {
-  "name":"baranyar-abadan","private":true,"version":"6.0.0",
+  "name":"baranyar-abadan",
+  "private":true,
+  "version":"6.0.0",
   "description":"Core, schemas and QA tooling for BaranYar Abadan",
   "scripts":{
     "test:schema":"node qa/validate-schema.mjs",
     "test:precipitation":"node qa/test-precipitation-core.mjs",
-    "test":"npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations && npm run test:station-registry && npm run test:noaa-gsod",
+    "test":"npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations && npm run test:station-registry && npm run test:noaa-gsod && npm run test:ogimet-synop && npm run test:verification",
     "test:time-adapter":"node qa/test-open-meteo-time-adapter.mjs",
     "test:archive":"node qa/test-forecast-archive.mjs",
     "test:observations":"node qa/test-rain-observations.mjs",
