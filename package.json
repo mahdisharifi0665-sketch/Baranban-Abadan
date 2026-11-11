@@ -1,8 +1,8 @@
 {
-  "name": "baranyar-abadan",
+  "name": "baranyar-abdan",
   "private": true,
   "version": "6.0.0",
-  "description": "Core, schemas and QA tooling for BaranYar Abadan",
+  "description": "Core, schemas and QA tooling for BaranYar Abdan",
   "scripts": {
     "test:schema": "node qa/validate-schema.mjs",
     "test:precipitation": "node qa/test-precipitation-core.mjs",
