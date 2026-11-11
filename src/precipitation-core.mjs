@@ -7,6 +7,18 @@ function instant(value, label) {
   }
   const ms = Date.parse(value);
   if (!Number.isFinite(ms)) throw new TypeError(`Invalid ${label} timestamp`);
+  const date = new Date(ms);
+  const fraction = value.match(/\.(\d{1,3})Z$/)?.[1] || "";
+  const expectedMilliseconds = Number((fraction + "00").slice(0,3));
+  const fieldsMatch =
+    date.getUTCFullYear() === Number(value.slice(0,4)) &&
+    date.getUTCMonth() + 1 === Number(value.slice(5,7)) &&
+    date.getUTCDate() === Number(value.slice(8,10)) &&
+    date.getUTCHours() === Number(value.slice(11,13)) &&
+    date.getUTCMinutes() === Number(value.slice(14,16)) &&
+    date.getUTCSeconds() === Number(value.slice(17,19)) &&
+    date.getUTCMilliseconds() === expectedMilliseconds;
+  if (!fieldsMatch) throw new TypeError(`Invalid calendar ${label} timestamp`);
   return ms;
 }
 
@@ -22,6 +34,7 @@ export function aggregatePrecipitation(intervals, window, expectedUnit = "mm") {
     const sorted = [...intervals].sort((a,b) => instant(a.start,"interval start") - instant(b.start,"interval start"));
     let cursor = windowStart;
     let totalScaled = 0;
+    let contributingIntervalCount = 0;
 
     for (const item of sorted) {
       const start = instant(item.start, "interval start");
@@ -36,13 +49,14 @@ export function aggregatePrecipitation(intervals, window, expectedUnit = "mm") {
       const scaledValue = Math.round(item.value * 1_000_000);
       if (!Number.isSafeInteger(scaledValue)) return {ok:false, reason:"numeric_overflow"};
       totalScaled += scaledValue;
+      contributingIntervalCount++;
       if (!Number.isSafeInteger(totalScaled)) return {ok:false, reason:"numeric_overflow"};
       cursor = end;
     }
 
     if (cursor < windowEnd) return {ok:false, reason:"incomplete_window"};
     if (cursor > windowEnd) return {ok:false, reason:"interval_outside_window"};
-    return {ok:true, totalMm:totalScaled / 1_000_000, intervalCount:sorted.length, coverageSeconds:(windowEnd-windowStart)/1000};
+    return {ok:true, totalMm:totalScaled / 1_000_000, intervalCount:contributingIntervalCount, coverageSeconds:(windowEnd-windowStart)/1000};
   } catch {
     return {ok:false, reason:"invalid_timestamp"};
   }
