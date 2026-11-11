@@ -5,7 +5,7 @@ export function haversineKm(a,b){const rad=value=>value*Math.PI/180;const dLat=r
 export function validateObservationStationRegistry(registry,{distanceToleranceKm=1.0,localGaugeMaximumDistanceKm=10}={}){
  const errors=[];if(!registry||typeof registry!=="object"||Array.isArray(registry))return {valid:false,errors:["registry_must_be_object"]};
  if(registry.registry_version!=="1.1.0")errors.push("unsupported_registry_version");
- const target=registry.target;if(!target||target.name!=="Abadan"||target.latitude!==28.0794||target.longitude!==51.7694)errors.push("invalid_abadan_reference");
+ const target=registry.target;if(!target||target.name!=="Abadan"||target.latitude!==28.0801523||target.longitude!==51.77113355)errors.push("invalid_abadan_reference");
  if(!Array.isArray(registry.stations))errors.push("stations_must_be_array");if(!Array.isArray(registry.providers))errors.push("providers_must_be_array");if(!Array.isArray(registry.stations)||!Array.isArray(registry.providers))return {valid:false,errors};
  const ids=new Set();for(const station of registry.stations){if(!station||typeof station!=="object"){errors.push("invalid_station_record");continue;}
   if(!station.station_id||ids.has(station.station_id))errors.push("missing_or_duplicate_station_id");ids.add(station.station_id);
