@@ -2,7 +2,7 @@
 // Calendar-day boundaries in Asia/Tehran must be converted to UTC by the caller.
 
 function instant(value, label) {
-  if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$/.test(value)) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) {
     throw new TypeError(`Invalid UTC ISO-8601 ${label} timestamp`);
   }
   const ms = Date.parse(value);
