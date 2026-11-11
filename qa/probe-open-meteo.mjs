@@ -6,6 +6,7 @@ import {buildHourlyPrecipitationIntervals,calendarDayWindow} from "../src/open-m
 const LAT = 28.0794;
 const LON = 51.7694;
 const TIMEZONE = "Asia/Tehran";
+const DAYS = 10;
 const TIMEOUT_MS = 45000;
 
 function addDays(date, days) {
