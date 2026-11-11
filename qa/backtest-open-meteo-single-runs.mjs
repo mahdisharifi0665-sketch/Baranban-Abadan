@@ -10,7 +10,7 @@ const observationArchive=JSON.parse(fs.readFileSync(observationPath,"utf8"));
 const windows=observationArchive.daily_non_overlapping_24h||[];
 const models=["ecmwf_ifs","gfs_global","icon_global"];
 const tasks=windows.flatMap(window=>models.map(model=>({window,model,run:window.window_start_utc.slice(0,10)+"T00:00"})));
-const results=new Array(tasks.length),pairs=[],headers={"user-agent":"Baranban-Abadan/5.1 exact single-run backtest"};
+const results=new Array(tasks.length),pairs=[],headers={"user-agent":"BaranYar-Abadan/6.0.0 exact single-run backtest"};
 async function fetchTask(task){
  const issueUtc=task.run+":00Z",issue=Date.parse(issueUtc),start=Date.parse(task.window.window_start_utc),end=Date.parse(task.window.window_end_utc);
  const leadStart=(start-issue)/3600000,leadEnd=(end-issue)/3600000;
