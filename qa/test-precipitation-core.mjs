@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {aggregatePrecipitation, ensembleExceedance, ensembleDailyExceedance} from "../src/precipitation-core.mjs";
+import {aggregatePrecipitation, ensembleExceedance, ensembleDailyExceedance, createEnsembleCoveragePolicy} from "../src/precipitation-core.mjs";
 
 const H = 60*60*1000;
 const t = h => new Date(Date.parse("2026-11-11T00:00:00Z")+h*H).toISOString();
@@ -79,3 +79,53 @@ assert.equal(ensembleDailyExceedance(dailyTotals,5,{minValidMembers:5,minMemberC
 assert.equal(ensembleDailyExceedance(dailyTotals,5).reason,"coverage_policy_not_configured");
 assert.equal(ensembleDailyExceedance(dailyTotals,-1,{minValidMembers:1,minMemberCoverage:0.1}).reason,"invalid_threshold");
 console.log("PASS: daily ensemble exceedance excludes null and negative member totals and enforces coverage policy.");
+
+
+// Versioned ensemble coverage policy regression tests.
+for (const [n,expected] of [[51,46],[31,28],[40,36]]) {
+  const policy=createEnsembleCoveragePolicy(n,"candidate-90-v1");
+  assert.equal(policy.minValidMembers,expected, `90% policy ceiling for N=${n}`);
+  assert.equal(policy.policyStatus,"candidate-uncalibrated");
+}
+assert.equal(createEnsembleCoveragePolicy(0,"candidate-90-v1"),null);
+assert.equal(createEnsembleCoveragePolicy(51,"unknown-policy"),null);
+const policy51=createEnsembleCoveragePolicy(51,"candidate-90-v1");
+const below51=Array(45).fill(0).concat(Array(6).fill(null));
+const at51=Array(46).fill(0).concat(Array(5).fill(null));
+const rejected51=ensembleDailyExceedance(below51,5,policy51);
+assert.equal(rejected51.probability,null);
+assert.equal(rejected51.reason,"insufficient_valid_members");
+assert.equal(rejected51.requiredMembers,46);
+assert.equal(rejected51.coverageFraction,45/51);
+const accepted51=ensembleDailyExceedance(at51,5,policy51);
+assert.equal(accepted51.probability,0);
+assert.equal(accepted51.validMembers,46);
+assert.equal(accepted51.totalMembers,51);
+assert.equal(accepted51.requiredMembers,46);
+assert.equal(accepted51.policyId,"candidate-90-v1");
+assert.equal(accepted51.policyStatus,"candidate-uncalibrated");
+assert.equal(accepted51.coverageFraction,46/51);
+for (const [n,required] of [[31,28],[40,36]]) {
+  const policy=createEnsembleCoveragePolicy(n);
+  assert.equal(ensembleDailyExceedance(Array(required-1).fill(1).concat(Array(n-required+1).fill(null)),5,policy).probability,null);
+  assert.equal(ensembleDailyExceedance(Array(required).fill(1).concat(Array(n-required).fill(null)),5,policy).probability,0);
+}
+const mixedInvalid=[0,5,4.999,10,25,null,undefined,NaN,Infinity,-0.01];
+const mixedPolicy=createEnsembleCoveragePolicy(mixedInvalid.length,"candidate-90-v1");
+assert.equal(mixedPolicy.minValidMembers,9);
+const mixedResult=ensembleDailyExceedance(mixedInvalid,5,{...mixedPolicy,minValidMembers:5});
+assert.equal(mixedResult.validMembers,5);
+assert.equal(mixedResult.exceedances,3);
+assert.equal(mixedResult.probability,3/5);
+assert.ok(mixedResult.probability>=0 && mixedResult.probability<=1);
+for (const threshold of [5,10,25]) {
+  const vals=[threshold-0.001,threshold,threshold+0.001];
+  const result=ensembleDailyExceedance(vals,threshold,{minValidMembers:3,minMemberCoverage:1});
+  assert.equal(result.exceedances,2, `inclusive threshold comparison at ${threshold}mm`);
+  assert.equal(result.probability,2/3);
+}
+const fractional=ensembleDailyExceedance([4.999999,5],5,{minValidMembers:2,minMemberCoverage:1});
+assert.equal(fractional.exceedances,1);
+assert.equal(ensembleDailyExceedance([],5,createEnsembleCoveragePolicy(1)).reason,"no_members");
+assert.equal(ensembleDailyExceedance([1],NaN,{minValidMembers:1,minMemberCoverage:1}).reason,"invalid_threshold");
+console.log("PASS: versioned strict-100/candidate-90 coverage policies, ceil boundaries, invalid members, inclusive 5/10/25mm thresholds and metadata.");
