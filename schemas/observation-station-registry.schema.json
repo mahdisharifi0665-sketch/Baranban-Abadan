@@ -27,10 +27,10 @@
           "const": "Abadan"
         },
         "latitude": {
-          "const": 28.0794
+          "const": 28.0801523
         },
         "longitude": {
-          "const": 51.7694
+          "const": 51.77113355
         }
       }
     },
