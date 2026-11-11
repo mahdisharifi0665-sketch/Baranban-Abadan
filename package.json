@@ -5,5 +5,9 @@
   "description": "Schema validation and QA tooling for Baranban Abadan",
   "scripts": {
     "test:schema": "node qa/validate-schema.mjs"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
   }
 }
