@@ -10,6 +10,8 @@
     "test:observations":"node qa/test-rain-observations.mjs",
     "test:station-registry":"node qa/test-observation-station-registry.mjs",
     "test:noaa-gsod":"node qa/test-noaa-gsod-observations.mjs",
+    "test:ogimet-synop":"node qa/test-ogimet-synop-observations.mjs",
+    "probe:ogimet-synop":"node qa/probe-ogimet-synop.mjs",
     "probe:noaa-gsod":"node qa/probe-noaa-gsod.mjs"
   },
   "devDependencies":{"ajv":"8.20.0","ajv-formats":"3.0.1"}

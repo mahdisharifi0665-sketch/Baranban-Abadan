@@ -43,6 +43,10 @@ jobs:
         run: npm run probe:noaa-gsod
       - name: Discover nearby GHCNh stations and probe NOAA SSODv2 2026 files
         run: node qa/probe-noaa-ssodv2-stations.mjs
+      - name: Test OGIMET SYNOP decoder and exact 24-hour aggregation
+        run: npm run test:ogimet-synop
+      - name: Probe live OGIMET SYNOP observations for Bandar-e-Dayyer
+        run: npm run probe:ogimet-synop
       - name: Probe live Open-Meteo model endpoints for Abadan and write archive
         run: node qa/probe-open-meteo.mjs
       - name: Upload forecast-cycle archive (90-day interim retention)

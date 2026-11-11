@@ -1,0 +1,16 @@
+import fs from "node:fs";
+import path from "node:path";
+import {createHash} from "node:crypto";
+import {parseOgimetSynopCsv,summarizeOgimetSynop} from "../src/ogimet-synop-observations.mjs";
+const stationId="40872",now=new Date(),beginDate=new Date(now.getTime()-60*86400000);
+const stamp=d=>d.getUTCFullYear()+String(d.getUTCMonth()+1).padStart(2,"0")+String(d.getUTCDate()).padStart(2,"0")+String(d.getUTCHours()).padStart(2,"0")+String(d.getUTCMinutes()).padStart(2,"0");
+const begin=stamp(beginDate),end=stamp(now),url="https://www.ogimet.com/cgi-bin/getsynop?block="+stationId+"&begin="+begin+"&end="+end+"&lang=eng&header=yes";
+const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{"user-agent":"Baranban-Abadan/5.1 observation-quality-probe"}});
+if(!response.ok)throw new Error("OGIMET getsynop failed: HTTP "+response.status);
+const raw=await response.text();if(raw.length<40||raw.includes("Status: 501 Sorry"))throw new Error("OGIMET response empty, blocked, or rate-limited");
+const retrievedAtUtc=new Date().toISOString(),parsed=parseOgimetSynopCsv(raw,{expectedStationId:stationId,retrievedAtUtc});
+if(parsed.reports.length===0)throw new Error("OGIMET returned no SYNOP reports for WMO "+stationId+" in the last 60 days");
+const summary=summarizeOgimetSynop(parsed);
+const archive={archive_schema_version:"1.0.0",archive_id:"baranban-abadan-ogimet-synop-"+retrievedAtUtc.replace(/[-:.]/g,""),generated_at_utc:retrievedAtUtc,requested_window:{begin_utc:begin,end_utc:end},target:{name:"Abadan",latitude:28.0794,longitude:51.7694,timezone:"Asia/Tehran"},station:{station_id:"WMO-40872",wmo_index:stationId,name:"Bandar-e-Dayyer",latitude:27.8333,longitude:51.9333,distance_from_abadan_km:31.7,direct_abadan_gauge:false},provider:"OGIMET getsynop / WMO GTS",request_url:url,payload_bytes:Buffer.byteLength(raw),payload_sha256:createHash("sha256").update(raw).digest("hex"),summary,reports:parsed.reports,observations:parsed.observations,warnings:parsed.warnings,acceptance:{accepted_records:0,note:"Raw SYNOP observations are preserved with their exact tR periods. They remain raw/suspect/missing and must not be treated as direct Abadan gauge measurements."}};
+const output="artifacts/observation-archive/ogimet-synop-40872.json";fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(archive,null,2)+"\n");
+console.log(JSON.stringify({output,generated_at_utc:retrievedAtUtc,summary,warning_count:parsed.warnings.length,payload_sha256:archive.payload_sha256},null,2));
