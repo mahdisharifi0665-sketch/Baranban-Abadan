@@ -337,6 +337,24 @@
       "access_requirement": "دسترسی عمومی به کاتالوگ؛ دسترسی به سری زمانی خام بارش و cadence هر ایستگاه باید جداگانه تأیید شود.",
       "source_url": "https://met.gov.kw/Climate/climate.php?lang=eng",
       "notes": "در registry فقط metadata پنج ایستگاه ثبت شده است. هیچ feed بارش یا آرشیو قابل ingest در این بررسی تأیید نشده؛ بنابراین archive_ingestion_enabled و operational_ingestion_enabled برای همه این ایستگاه‌ها false باقی می‌مانند."
+    },
+    {
+      "provider_id": "ERA5-ARCHIVE-API",
+      "name": "ERA5 hourly precipitation reanalysis via Open-Meteo Historical Weather API",
+      "status": "verified_public_gridded_archive",
+      "capability": "دریافت عمومی بارش ساعتی ERA5 با واحد mm، مدل صریح era5، زمان UTC و انتخاب نزدیک‌ترین سلول شبکه؛ فقط برآورد بازتحلیل شبکه‌ای است.",
+      "access_requirement": "درخواست HTTPS عمومی بدون credential؛ داده نهایی با حدود پنج روز تأخیر منتشر می‌شود.",
+      "source_url": "https://open-meteo.com/en/docs/historical-weather-api",
+      "notes": "تفکیک اسمی ERA5 حدود 0.25 درجه/25 کیلومتر است. خروجی gridded_estimate جدا از ایستگاه‌ها آرشیو می‌شود و هرگز ground truth محلی یا بارش 5km تلقی نمی‌شود. متغیر بارش در این adapter از ERA5 دریافت می‌شود، نه ERA5-Land."
+    },
+    {
+      "provider_id": "NASA-GPM-IMERG",
+      "name": "NASA Global Precipitation Measurement IMERG V07",
+      "status": "credential_gated_candidate",
+      "capability": "برآورد بارش ماهواره‌ای 30 دقیقه‌ای با تفکیک حدود 0.1 درجه؛ مسیر Early/Late برای near-real-time و Final برای آرشیو تاریخی.",
+      "access_requirement": "دسترسی داده PPS/GES DISC ممکن است به ثبت‌نام و احراز هویت NASA Earthdata نیاز داشته باشد؛ تا زمان تأیید احراز هویت و دریافت نمونه معتبر، ingestion غیرفعال است.",
+      "source_url": "https://gpm.nasa.gov/data/directory",
+      "notes": "منبع مستقل از ایستگاه نیست و باید به‌عنوان satellite_estimate جدا ذخیره شود. پرچم‌های کیفیت و نسخه محصول V07 باید حفظ شوند. این محصول نیز تضمین وضوح واقعی 5km نمی‌دهد."
     }
   ],
   "distance_policy_km": {
