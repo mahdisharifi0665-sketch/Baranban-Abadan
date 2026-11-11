@@ -35,6 +35,8 @@ jobs:
         run: npm run test:archive
       - name: Test rain observation schema and time-series quality controls
         run: npm run test:observations
+      - name: Test observation station registry and provenance guards
+        run: npm run test:station-registry
       - name: Probe live Open-Meteo model endpoints for Abadan and write archive
         run: node qa/probe-open-meteo.mjs
       - name: Upload forecast-cycle archive (90-day interim retention)
