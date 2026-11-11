@@ -12,6 +12,7 @@ assert.equal(archive.products[0].payloadSha256,hash);
 assert.equal(archive.products[0].rawPayload,undefined);
 assert.equal(archive.archive_notes.forecast_skill_validated,false);
 assert.throws(()=>createForecastArchiveDocument({...base,results:[{...base.results[0],rawPayload:undefined}]}),/raw provider payload/);
+assert.throws(()=>createForecastArchiveDocument({...base,results:[{...base.results[0],rawPayload:rawPayload+"x"}]}),/SHA-256 mismatch/);
 assert.throws(()=>createForecastArchiveDocument({...base,generatedAtUtc:"yesterday"}),/ISO UTC timestamp/);
 assert.throws(()=>createForecastArchiveDocument({...base,target:{...base.target,latitude:999}}),/target metadata/);
 assert.throws(()=>createForecastArchiveDocument({...base,results:[]}),/at least one successful product/);
