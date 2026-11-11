@@ -32,15 +32,15 @@ assert.equal(report.direct_abadan_ground_truth,false);assert.equal(report.calibr
 
 const latestEnd=Date.parse("2026-11-12T18:00:00Z"),now=Date.parse("2026-11-13T05:30:00Z");
 const artifact=(id,created_at,extra={})=>({id,name:"baranyar-forecast-archive-"+id,created_at,expired:false,archive_download_url:"https://example.invalid/"+id,...extra});
-const selected=selectForecastArtifactsForVerification([
- artifact(1,"2026-11-11T11:00:00Z"),
+const legacyArtifact=artifact(8,"2026-11-11T10:00:00Z",{name:"baranban-forecast-archive-8"});\nconst selected=selectForecastArtifactsForVerification([
+ artifact(1,"2026-11-11T11:00:00Z"),\n legacyArtifact,
  artifact(2,"2026-11-12T19:00:00Z"),
  artifact(7,"2026-11-12T12:00:00Z"),
  artifact(3,"2026-10-01T11:00:00Z"),
  artifact(4,"2026-11-11T12:00:00Z",{expired:true}),
  artifact(5,"2026-11-11T13:00:00Z",{name:"baranban-observation-archive-5"})
 ],[{window_start_utc:"2026-11-11T18:00:00Z",window_end_utc:"2026-11-12T18:00:00Z"}],{nowMs:now,lookbackDays:30});
-assert.deepEqual(selected.map(x=>x.id),[1]);
+assert.deepEqual(selected.map(x=>x.id),[1,8]);
 assert.deepEqual(selectForecastArtifactsForVerification([artifact(6,"2026-11-11T11:00:00Z")],[{window_start_utc:"2026-11-12T18:00:00Z",window_end_utc:"2026-11-13T18:00:00Z"}],{nowMs:now}),[artifact(6,"2026-11-11T11:00:00Z")]);
 
 console.log("PASS: deterministic MAE/bias/RMSE, threshold contingency, ensemble strict probability, Brier and reliability scoring.");
