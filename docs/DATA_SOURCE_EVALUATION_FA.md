@@ -230,3 +230,10 @@
 ## نتیجه backtest و کیفیت نمونه
 
 در run `43011655160`، endpoint تاریخی Single Runs برای 7 پنجره غیرهم‌پوشان اخیر، هر سه مدل ECMWF/GFS/ICON را با پوشش کامل بازگرداند (21 زوج). فقط یک رخداد 7.6mm وجود داشت؛ شاخص‌های MAE/Bias/RMSE و آستانه 5mm در گزارش verification ثبت شدند، اما به‌دلیل n=7 برای هر مدل و فقط یک رخداد مثبت، همه گروه‌ها `insufficient_sample` باقی می‌مانند. این داده برای شناسایی خطاهای آشکار و آزمایش pipeline مفید است، نه برای رتبه‌بندی یا کالیبراسیون.
+
+
+## مسیر رسمی WIS2 سازمان هواشناسی ایران (کاندید تأییدنشده)
+
+کاتالوگ جهانی WIS2 یک مجموعه با عنوان «Hourly synoptic observations from local fixed-land stations (SYNOP) (ir-irimo)» را برای سازمان هواشناسی ایران معرفی می‌کند؛ metadata آن در 2025-09-06 به‌روزرسانی شده و precipitation در فهرست پارامترهاست. topic اعلام‌شده برای دریافت اعلان‌ها `origin/a/wis2/ir-irimo/data/recommended/weather/surface-based-observations/synop` است و چند Global Broker عمومی برای subscription فهرست شده‌اند. بااین‌حال، خود topic از نوع `recommended` است و ممکن است کنترل دسترسی داشته باشد؛ endpoint داده/BUFR و پوشش ایستگاه WMO 40872 هنوز دریافت و رمزگشایی نشده است. بنابراین این مسیر در registry فقط `advertised_wis2_feed_unverified` است و در ingestion یا صحت‌سنجی عملیاتی استفاده نمی‌شود.
+
+مرجع کاتالوگ: https://wis2-gdc.weather.gc.ca/collections/wis2-discovery-metadata/items/urn%3Awmo%3Amd%3Air-irimo%3Areco.surface-based-observations.synop?f=html

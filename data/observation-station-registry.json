@@ -211,6 +211,15 @@
       "access_requirement": "Manual review and confirmation from the Dayyer Water Resources Office or station operator; no credentials or direct feed confirmed.",
       "source_url": "https://t.me/s/weatherboushehrhelleh",
       "notes": "The channel is a secondary source, not the official station operator. A historical report quoting the Dayyer Water Resources Office supports the existence of a local Abadan rain gauge. Use only as manual_report after validating the exact observation period and source."
+    },
+    {
+      "provider_id": "IRIMO-WIS2-SYNOP",
+      "name": "Iran Meteorological Organization WIS2 SYNOP feed",
+      "status": "advertised_wis2_feed_unverified",
+      "capability": "WIS2 metadata advertises hourly synoptic observations from Iranian fixed-land stations, including precipitation; station-specific payload availability remains unverified.",
+      "access_requirement": "Subscribe to the WIS2 Global Broker MQTT topic origin/a/wis2/ir-irimo/data/recommended/weather/surface-based-observations/synop. The recommended data topic may apply access controls; no successful payload download has been verified.",
+      "source_url": "https://wis2-gdc.weather.gc.ca/collections/wis2-discovery-metadata/items/urn%3Awmo%3Amd%3Air-irimo%3Areco.surface-based-observations.synop?f=html",
+      "notes": "WIS2 discovery metadata identifies IRIMO as the dataset contact and lists precipitation among the variables. The metadata was updated 2025-09-06. The origin broker notification, canonical data link, BUFR payload and WMO 40872 coverage have not been tested; do not use this provider operationally until validated."
     }
   ]
 }
