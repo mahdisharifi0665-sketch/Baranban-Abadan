@@ -11,6 +11,16 @@
 - API عمومی برای استفاده غیرتجاری بدون کلید API در دسترس معرفی شده؛ استفاده تجاری نیازمند شرایط/دسترسی متفاوت است. مجوز داده ECMWF IFS open data به CC BY 4.0 اشاره دارد؛ این موضوع نباید به معنی یکسان بودن مجوز تمام داده‌های گردآوری‌شده توسط واسطه تلقی شود.
 - API عمومی، مدل‌ها را به یک سری زمانی seamless متصل می‌کند؛ این رفتار برای داشبورد عمومی مفید است، اما برای مقایسه مستقل مدل‌ها و بازتولید چرخه‌های تاریخی کافی نیست. باید endpoint/پارامتر مدل مجزا یا آرشیو single-run مناسب استفاده شود.
 
+## تطبیق متغیرها و زمان‌بندی بر اساس مستندات Ensemble API
+
+- متغیر precipitation در مستندات به‌صورت مجموع بارش یک ساعت قبل تعریف شده است؛ بنابراین برای ساخت ۲۴ ساعت باید ۲۴ بازه ساعتی کامل، بدون شکاف و هم‌پوشانی جمع شوند.
+- CAPE در فهرست متغیرهای ensemble دیده می‌شود.
+- Vertical Velocity در سطوح فشاری در بخش Pressure Level Variables فهرست شده است؛ قرارداد علامت/واحد باید از metadata منبع دریافت و در adapter تثبیت شود.
+- PWAT/Precipitable Water در فهرست متغیرهای صفحه Ensemble API که بررسی شد مشاهده نشد؛ تا وقتی منبعی با نام متغیر، واحد و سطح تعریف‌شده تأیید نشود، PWAT نباید در خروجی به‌عنوان داده موجود نمایش داده شود.
+- فهرست متغیرها و دسترسی آن‌ها به مدل انتخابی وابسته است؛ وجود متغیر در صفحه عمومی تضمین نمی‌کند که برای هر مدل/چرخه/نقطه موجود باشد.
+- API دارای انتخاب cell_selection است؛ حالت land نزدیک‌ترین سلول مناسب خشکی با توجه به مدل ارتفاعی ۹۰ متری را ترجیح می‌دهد، sea سلول دریایی و nearest نزدیک‌ترین سلول را انتخاب می‌کند. برای آبدان هر سه حالت باید با داده واقعی مقایسه شوند.
+- مستندات می‌گویند timezone در Ensemble API ممکن است تغییرات DST داخل بازه را با offset ثابت مدیریت کند؛ در نرم‌افزار باید timestampها با timezone database و مرزهای نیمه‌باز تبدیل شوند، نه با تکیه بر offset ثابت پاسخ API.
+
 ## نتیجه عملی برای آبدان
 
 1. Open-Meteo برای نمونه‌سازی و دسترسی ساده به مدل‌های جهانی، نامزد مناسبی است.
@@ -24,7 +34,8 @@
 - اجرای درخواست آزمایشی در مختصات هدف برای ECMWF deterministic، GFS deterministic، ICON deterministic و سه ensemble مربوطه.
 - ذخیره پاسخ خام، header/metadata، زمان دریافت و hash؛ کنترل واحد و بازه تجمع بارش.
 - بررسی cell selection در حالت land و nearest و مقایسه سلول‌ها و فاصله آن‌ها از مختصات.
-- بررسی دسترسی واقعی به CAPE، PWAT، omega/vertical velocity، رطوبت و باد؛ عدم وجود هر متغیر باید در feature matrix ثبت شود.
+- بررسی دسترسی واقعی به CAPE، PWAT (در منبع مستقل)، omega/vertical velocity، رطوبت و باد؛ عدم وجود هر متغیر باید در feature matrix ثبت شود.
+- تأیید شناسه دقیق مدل‌های انتخابی API از enum رسمی و اجرای درخواست نمونه؛ نام نمایشی مدل را مستقیماً به شناسه API تبدیل نکنید.
 - بررسی نرخ درخواست، timeout، شرایط استفاده، attribution و حقوق ذخیره‌سازی/بازنشر.
 - تعیین منبع اصلی و fallback فقط پس از تکمیل ماتریس فوق.
 
@@ -32,6 +43,7 @@
 
 - ECMWF API: https://open-meteo.com/en/docs/ecmwf-api
 - Ensemble API: https://open-meteo.com/en/docs/ensemble-api
+- Ensemble Mean API: https://open-meteo.com/en/docs/ensemble-mean-api
 - Forecast API: https://open-meteo.com/en/docs
 - Model update status: https://open-meteo.com/en/docs/model-updates
 - ECMWF access to forecasts: https://www.ecmwf.int/en/forecasts/accessing-forecasts
