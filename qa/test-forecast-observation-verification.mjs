@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {buildVerificationPairs,scoreVerificationPairs,selectForecastArtifactsForVerification} from "../src/forecast-observation-verification.mjs";
+import {buildVerificationPairs,scoreVerificationPairs,selectForecastArtifactsForVerification,forecastLeadBin,deduplicateForecastArchives} from "../src/forecast-observation-verification.mjs";
 const times=[];for(let i=1;i<=24;i++){const d=new Date(Date.parse("2026-11-10T00:00:00Z")+i*3600000);times.push(d.toISOString().slice(0,16));}
 const values=v=>Array(24).fill(v);
 const payload=hourly=>JSON.stringify({hourly:{time:times,...hourly},hourly_units:{precipitation:"mm"}});
@@ -51,3 +51,10 @@ const broadSelection=selectForecastArtifactsForVerification(crowdedInventory,[{w
 assert.equal(broadSelection.length,25,"verification candidate selection must not truncate at the former 20-artifact default");
 
 console.log("PASS: deterministic MAE/bias/RMSE, threshold contingency, ensemble strict probability, Brier and reliability scoring.");
+const longLeadArchive={...archive,generated_at_utc:"2026-10-30T00:00:00Z"};
+const longLead=buildVerificationPairs(longLeadArchive,observed);
+assert.equal(longLead.pairs[0].lead_hours,264);
+assert.equal(longLead.pairs[0].lead_bin,"240h+","lead times beyond 240 hours must not be mislabeled as 120-240h");
+const duplicateArchive={...archive};
+assert.equal(deduplicateForecastArchives([archive,duplicateArchive]).length,1,"identical archived cycles must only be scored once");
+assert.throws(()=>deduplicateForecastArchives([archive,{...archive,generated_at_utc:"2026-11-09T13:00:00Z"}]),/conflicting_duplicate_forecast_archive/);
