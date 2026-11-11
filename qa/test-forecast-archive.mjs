@@ -6,6 +6,7 @@ const hash=createHash("sha256").update(rawPayload).digest("hex");
 const base={generatedAtUtc:"2026-11-11T10:00:00.000Z",target:{latitude:28.0801523,longitude:51.77113355,timezone:"Asia/Tehran",requestedCalendarDays:10},results:[{type:"deterministic",model:"ecmwf_ifs",retrievedAtUtc:"2026-11-11T09:59:00.000Z",payloadSha256:hash,rawPayload}],failures:[]};
 const archive=createForecastArchiveDocument(base);
 assert.equal(archive.archive_schema_version,"1.0.0");
+assert.equal(archive.project.version,"6.0.0");
 assert.equal(archive.product_count,1);
 assert.equal(archive.products[0].raw_payload,rawPayload);
 assert.equal(archive.products[0].payloadSha256,hash);
