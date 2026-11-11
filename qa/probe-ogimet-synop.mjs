@@ -5,7 +5,7 @@ import {parseOgimetSynopCsv,aggregateComplete24h,summarizeOgimetSynop} from "../
 const stationId="40872",now=new Date(),beginDate=new Date(now.getTime()-60*86400000);
 const stamp=d=>d.getUTCFullYear()+String(d.getUTCMonth()+1).padStart(2,"0")+String(d.getUTCDate()).padStart(2,"0")+String(d.getUTCHours()).padStart(2,"0")+String(d.getUTCMinutes()).padStart(2,"0");
 const begin=stamp(beginDate),end=stamp(now),url="https://www.ogimet.com/cgi-bin/getsynop?block="+stationId+"&begin="+begin+"&end="+end+"&lang=eng&header=yes";
-const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{"user-agent":"Baranban-Abadan/5.1 observation-quality-probe"}});
+const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{"user-agent":"BaranYar-Abadan/6.0.0 observation-quality-probe"}});
 if(!response.ok)throw new Error("OGIMET getsynop failed: HTTP "+response.status);
 const raw=await response.text();if(raw.length<40||raw.includes("Status: 501 Sorry"))throw new Error("OGIMET response empty, blocked, or rate-limited");
 const retrievedAtUtc=new Date().toISOString(),parsed=parseOgimetSynopCsv(raw,{expectedStationId:stationId,retrievedAtUtc});
