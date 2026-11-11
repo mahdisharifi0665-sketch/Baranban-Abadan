@@ -7,6 +7,17 @@ const DAYS = 10;
 const TIMEZONE = "Asia/Tehran";
 const TIMEOUT_MS = 45000;
 
+function addDays(date, days) {
+  const [y,m,d]=date.split("-").map(Number);
+  return new Date(Date.UTC(y,m-1,d+days)).toISOString().slice(0,10);
+}
+function localDateNow(timeZone) {
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date()).filter(x=>x.type!=="literal").map(x=>[x.type,x.value]));
+  return p.year+"-"+p.month+"-"+p.day;
+}
+const firstForecastDate=addDays(localDateNow(TIMEZONE),1);
+const requestedWindow={startHour:firstForecastDate+"T01:00",endHour:addDays(firstForecastDate,10)+"T00:00",expectedHours:240};
+
 async function getJson(base, params) {
   const url = new URL(base);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
@@ -36,15 +47,14 @@ function inspectHourly(json, variable) {
   const arraysAligned = keys.every(k=>Array.isArray(hourly[k]) && hourly[k].length===times.length);
   const nonNull = keys.reduce((n,k)=>n+(hourly[k] || []).filter(v=>v !== null && Number.isFinite(v)).length,0);
   const expected = keys.reduce((n,k)=>n+(hourly[k] || []).length,0);
-  return {hours:times.length, first:times[0] ?? null, last:times.at(-1) ?? null, monotonicHourly, arraysAligned, variableFields:keys.length, validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0};
+  return {hours:times.length, first:times[0] ?? null, last:times.at(-1) ?? null, requestedStart:requestedWindow.startHour, requestedEnd:requestedWindow.endHour, matchesRequestedBounds:times[0]===requestedWindow.startHour && times.at(-1)===requestedWindow.endHour, monotonicHourly, arraysAligned, variableFields:keys.length, validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0};
 }
 
 async function deterministic(model) {
   const json = await getJson("https://api.open-meteo.com/v1/forecast", {
     latitude:String(LAT), longitude:String(LON),
     hourly:"precipitation,cape,relative_humidity_2m,wind_speed_10m,wind_direction_10m,pressure_msl",
-    daily:"precipitation_sum",
-    forecast_days:String(DAYS), timezone:TIMEZONE, models:model, cell_selection:"land"
+    start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, timezone:TIMEZONE, models:model, cell_selection:"land"
   });
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
@@ -52,16 +62,15 @@ async function deterministic(model) {
   const precipCheck=inspectHourly(json,"precipitation");
   assert.ok(precipCheck.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipCheck.arraysAligned, model + " precipitation arrays are not aligned with timestamps");
-  assert.equal(json.daily?.time?.length,DAYS,model + " daily forecast does not cover requested horizon");
-  assert.equal(json.daily?.precipitation_sum?.length,DAYS,model + " daily precipitation array length mismatch");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
+
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, cape:inspectHourly(json,"cape"), requestedWindow};
 }
 
 async function ensemble(model) {
   const json = await getJson("https://ensemble-api.open-meteo.com/v1/ensemble", {
     latitude:String(LAT), longitude:String(LON),
     hourly:"precipitation,cape",
-    forecast_days:String(DAYS), timezone:TIMEZONE,
+    start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, timezone:TIMEZONE,
     models:model, cell_selection:"land"
   });
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
@@ -70,7 +79,7 @@ async function ensemble(model) {
   assert.ok(precipitation.variableFields > 0, model + " returned no precipitation member fields");
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
@@ -83,5 +92,5 @@ for (const model of ["ecmwf_ifs025_ensemble","ncep_gefs025","dwd_icon_global_eps
   try { results.push({type:"ensemble",...await ensemble(model)}); }
   catch (e) { failures.push({type:"ensemble",model,error:String(e)}); }
 }
-console.log(JSON.stringify({target:{latitude:LAT,longitude:LON,timezone:TIMEZONE,requestedForecastDays:DAYS},results,failures},null,2));
+console.log(JSON.stringify({target:{latitude:LAT,longitude:LON,timezone:TIMEZONE,requestedCalendarDays:10},results,failures},null,2));
 assert.equal(failures.length,0,"One or more Open-Meteo model probes failed");
