@@ -44,4 +44,25 @@ assert.equal(validateObservationStationRegistry({...registry,stations:registry.s
 assert.equal(validateObservationStationRegistry({...registry,stations:registry.stations.map(s=>s.station_id===local.station_id?{...s,archive_ingestion_enabled:true}:s)}).valid,false);
 const localProvider=registry.providers.find(p=>p.provider_id==="ABADAN-LOCAL-GAUGE-SECONDARY-REPORTS");
 assert.equal(localProvider.status,"manual_reports_only");
+
+for (const [id, distance, country] of [
+  ["WMO-40592", 367.1, "Kuwait"],
+  ["WMO-40594", 335.0, "Kuwait"],
+  ["WMO-40562", 369.8, "Kuwait"],
+  ["WMO-40595", 304.2, "Kuwait"],
+  ["WMO-40596", 312.2, "Kuwait"]
+]) {
+  const station = registry.stations.find(s => s.station_id === id);
+  assert.ok(station, `missing registered regional station ${id}`);
+  assert.equal(station.country, country);
+  assert.equal(station.direct_abadan_gauge, false);
+  assert.equal(station.operational_ingestion_enabled, false);
+  assert.equal(station.archive_ingestion_enabled, false);
+  assert.equal(station.precipitation_status, "historical_archive_candidate");
+  assert.ok(Math.abs(haversineKm(registry.target, station) - distance) < 0.2);
+}
+const kuwait = registry.providers.find(p => p.provider_id === "KUWAIT-MET-STATION-CATALOG");
+assert.equal(kuwait.status, "historical_context_only");
+assert.ok(kuwait.notes.includes("هیچ feed بارش"));
+
 console.log("PASS: observation station registry schema, provenance, distance, source status and archive-only ingestion guards.");
