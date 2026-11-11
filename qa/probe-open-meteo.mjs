@@ -50,6 +50,7 @@ function inspectHourly(json, variable) {
   const validPerField=keys.map(k=>(hourly[k] || []).filter(v=>v !== null && Number.isFinite(v)).length);
   const nonNull=validPerField.reduce((a,b)=>a+b,0);
   const expected=keys.reduce((n,k)=>n+(hourly[k] || []).length,0);
+  const negativeSamples=keys.flatMap(k=>(hourly[k]||[]).map((v,i)=>({field:k,time:times[i],value:v})).filter(x=>Number.isFinite(x.value)&&x.value<0)).slice(0,20);
   const validMembersPerTime=times.map((_,i)=>keys.reduce((n,k)=>n+(Number.isFinite(hourly[k]?.[i])?1:0),0));
   const firstKey=keys[0];
   const missingExamples=firstKey ? times.filter((_,i)=>!Number.isFinite(hourly[firstKey]?.[i])).slice(0,12) : [];
@@ -61,6 +62,8 @@ function inspectHourly(json, variable) {
     validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0,
     perMemberValidHours:validPerField.length ? {min:Math.min(...validPerField),max:Math.max(...validPerField),fullCoverage:validPerField.filter(n=>n===times.length).length} : null,
     validMembersPerHour:keys.length ? {min:Math.min(...validMembersPerTime),max:Math.max(...validMembersPerTime)} : null,
+    negativeValueCount:keys.reduce((n,k)=>n+(hourly[k]||[]).filter(v=>Number.isFinite(v)&&v<0).length,0),
+    negativeValueExamples:negativeSamples,
     firstMemberMissingHourExamples:missingExamples
   };
 }
