@@ -14,7 +14,8 @@ if(targetWindows.length===0)throw new Error("No recent complete non-overlapping 
 const TARGET={name:"Abdan",latitude:28.0801523,longitude:51.77113355,timezone:"Asia/Tehran"};
 const models=["ecmwf_ifs","gfs_global","icon_global"];
 async function probeModel(model,runParam,runUtc,targetWindow){
- const url=`https://single-runs-api.open-meteo.com/v1/forecast?latitude=${TARGET.latitude}&longitude=${TARGET.longitude}&models=`+model+"&run="+encodeURIComponent(runParam)+"&hourly=precipitation&forecast_days=10&timezone=UTC`;
+ const params=new URLSearchParams({latitude:String(TARGET.latitude),longitude:String(TARGET.longitude),models:model,run:runParam,hourly:"precipitation",forecast_days:"10",timezone:"UTC"});
+ const url=`https://single-runs-api.open-meteo.com/v1/forecast?${params.toString()}`;
  try{
   const response=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{"user-agent":"Baranban-Abadan/5.1 historical single-run verification"}});
   const body=await response.text();
