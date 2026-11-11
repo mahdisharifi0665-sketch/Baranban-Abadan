@@ -18,6 +18,13 @@ async function getJson(base, params) {
   return json;
 }
 
+function distanceKm(lat1, lon1, lat2, lon2) {
+  const rad = d => d * Math.PI / 180;
+  const dLat = rad(lat2-lat1), dLon = rad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;
+  return Number((6371 * 2 * Math.asin(Math.sqrt(a))).toFixed(2));
+}
+
 function inspectHourly(json, variable) {
   const hourly = json.hourly || {};
   const times = hourly.time || [];
@@ -37,7 +44,7 @@ async function deterministic(model) {
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   assert.ok(json.hourly_units?.precipitation, model + " missing precipitation unit");
-  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone}, precipitation:inspectHourly(json,"precipitation"), cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
+  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, precipitation:inspectHourly(json,"precipitation"), cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
 }
 
 async function ensemble(model) {
