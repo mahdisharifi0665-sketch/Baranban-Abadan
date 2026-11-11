@@ -15,9 +15,9 @@ async function fetchTask(task){
  const issueUtc=task.run+":00Z",issue=Date.parse(issueUtc),start=Date.parse(task.window.window_start_utc),end=Date.parse(task.window.window_end_utc);
  const leadStart=(start-issue)/3600000,leadEnd=(end-issue)/3600000;
  const url="https://single-runs-api.open-meteo.com/v1/forecast?latitude=28.0801523&longitude=51.77113355&models="+task.model+"&run="+encodeURIComponent(task.run)+"&hourly=precipitation&forecast_days=2&timezone=UTC";
- for(let attempt=0;attempt<2;attempt++){try{
+ for(let attempt=0;attempt<3;attempt++){try{
   const response=await fetch(url,{headers,signal:AbortSignal.timeout(20000)});const body=await response.text();
-  if(!response.ok){if(attempt===0&&[429,500,502,503,504].includes(response.status)){await new Promise(resolve=>setTimeout(resolve,700));continue;}return {model:task.model,run_utc:issueUtc,window_end_utc:task.window.window_end_utc,available:false,http_status:response.status,error:body.slice(0,350),url};}
+  if(!response.ok){if(attempt<2&&[408,425,429,500,502,503,504].includes(response.status)){await new Promise(resolve=>setTimeout(resolve,800*(attempt+1)));continue;}return {model:task.model,run_utc:issueUtc,window_end_utc:task.window.window_end_utc,available:false,http_status:response.status,error:body.slice(0,350),url};}
   const raw=JSON.parse(body),times=raw.hourly?.time,values=raw.hourly?.precipitation;
   if(!Array.isArray(times)||!Array.isArray(values)||times.length!==values.length)throw new Error("hourly_precipitation_arrays_missing_or_misaligned");
   const intervals=buildHourlyPrecipitationIntervals(times,values,raw.hourly_units?.precipitation||"mm","UTC");
@@ -25,7 +25,7 @@ async function fetchTask(task){
   const result={model:task.model,run_utc:issueUtc,window_start_utc:task.window.window_start_utc,window_end_utc:task.window.window_end_utc,observed_mm:task.window.total_mm,available:true,http_status:response.status,coverage_start:times[0],coverage_end:times.at(-1),hourly_count:times.length,forecast_mm:total.ok?total.totalMm:null,error_mm:total.ok?Number((total.totalMm-task.window.total_mm).toFixed(4)):null,coverage_ok:total.ok,coverage_reason:total.reason||null,lead_start_hours:Number(leadStart.toFixed(2)),lead_end_hours:Number(leadEnd.toFixed(2)),payload_sha256:createHash("sha256").update(body).digest("hex"),raw_payload:raw,url};
   if(total.ok&&leadStart>=0&&leadEnd<=48){pairs.push({product_type:"deterministic",model:task.model,archive_id:"single-run-"+task.run,issue_time_utc:issueUtc,window_start_utc:task.window.window_start_utc,window_end_utc:task.window.window_end_utc,lead_hours:Number(((leadStart+leadEnd)/2).toFixed(2)),lead_bin:"18-42h",station_id:"WMO-40872",observed_total_mm:task.window.total_mm,forecast_total_mm:total.totalMm,error_mm:Number((total.totalMm-task.window.total_mm).toFixed(6))});}
   return result;
- }catch(error){if(attempt===1)return {model:task.model,run_utc:issueUtc,window_end_utc:task.window.window_end_utc,available:false,error:String(error),url};}}
+ }catch(error){if(attempt===2)return {model:task.model,run_utc:issueUtc,window_end_utc:task.window.window_end_utc,available:false,error:String(error),url};await new Promise(resolve=>setTimeout(resolve,800*(attempt+1)));}}
 }
 let cursor=0;async function worker(){while(true){const index=cursor++;if(index>=tasks.length)return;results[index]=await fetchTask(tasks[index]);}}
 await Promise.all(Array.from({length:4},()=>worker()));
