@@ -49,6 +49,9 @@ assert.deepEqual(selectForecastArtifactsForVerification([artifact(6,"2026-11-11T
 const crowdedInventory=Array.from({length:25},(_,i)=>artifact(100+i,new Date(now-i*60000).toISOString()));
 const broadSelection=selectForecastArtifactsForVerification(crowdedInventory,[{window_start_utc:"2026-11-11T18:00:00Z",window_end_utc:"2026-11-12T18:00:00Z"}],{nowMs:now});
 assert.equal(broadSelection.length,25,"verification candidate selection must not truncate at the former 20-artifact default");
+const expandedInventory=Array.from({length:180},(_,i)=>artifact(300+i,new Date(now-i*60000).toISOString()));
+const expandedSelection=selectForecastArtifactsForVerification(expandedInventory,[{window_start_utc:"2026-11-11T18:00:00Z",window_end_utc:"2026-11-12T18:00:00Z"}],{nowMs:now});
+assert.equal(expandedSelection.length,180,"verification candidate selection must retain all candidates below the 250-artifact safety cap");
 
 console.log("PASS: deterministic MAE/bias/RMSE, threshold contingency, ensemble strict probability, Brier and reliability scoring.");
 const longLeadArchive={...archive,generated_at_utc:"2026-10-30T00:00:00Z"};
