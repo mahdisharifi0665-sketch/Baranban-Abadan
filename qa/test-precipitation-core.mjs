@@ -35,6 +35,12 @@ assert.equal(aggregatePrecipitation(negative,window).reason,"missing_or_invalid_
 const wrongUnit=series(Array(24).fill(0)); wrongUnit[4]={...wrongUnit[4],unit:"mm/h"};
 assert.equal(aggregatePrecipitation(wrongUnit,window).reason,"unit_mismatch");
 assert.equal(aggregatePrecipitation(series(Array(24).fill(0)),{start:t(24),end:t(0)}).reason,"invalid_window");
+const twoDays=series([...Array(24).fill(0.1),...Array(24).fill(0.2)]);
+const secondDay=aggregatePrecipitation(twoDays,{start:t(24),end:t(48)});
+assert.equal(secondDay.ok,true,"intervals outside the target window must be ignored");
+assert.equal(secondDay.totalMm,4.8);
+const boundaryCross=[...series(Array(24).fill(0)),{start:t(23),end:t(25),value:1,unit:"mm"}];
+assert.equal(aggregatePrecipitation(boundaryCross,{start:t(24),end:t(48)}).reason,"interval_crosses_window_boundary");
 const localTimeSeries=series(Array(24).fill(0)); localTimeSeries[0]={...localTimeSeries[0],start:"2026-11-11T00:00:00"};
 assert.equal(aggregatePrecipitation(localTimeSeries,window).reason,"invalid_timestamp");
 assert.equal(aggregatePrecipitation(series(Array(24).fill(0.1)),window).totalMm,2.4);
