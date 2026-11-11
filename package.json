@@ -6,7 +6,8 @@
   "scripts": {
     "test:schema": "node qa/validate-schema.mjs",
     "test:precipitation": "node qa/test-precipitation-core.mjs",
-    "test": "npm run test:schema && npm run test:precipitation"
+    "test": "npm run test:schema && npm run test:precipitation && npm run test:time-adapter",
+    "test:time-adapter": "node qa/test-open-meteo-time-adapter.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",
