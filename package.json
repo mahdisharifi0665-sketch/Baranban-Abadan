@@ -1,6 +1,6 @@
 {
-  "name":"baranban-abadan","private":true,"version":"5.1.0",
-  "description":"Schema validation and QA tooling for Baranban Abadan",
+  "name":"baranyar-abadan","private":true,"version":"6.0.0",
+  "description":"Core, schemas and QA tooling for BaranYar Abadan",
   "scripts":{
     "test:schema":"node qa/validate-schema.mjs",
     "test:precipitation":"node qa/test-precipitation-core.mjs",
