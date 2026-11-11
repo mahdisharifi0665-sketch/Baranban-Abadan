@@ -417,3 +417,43 @@ ECMWF، NOAA/GFS و DWD/ICON منابع مستقل برای مقایسه‌ان�
 - اجرای کامل بک‌تست تاریخی ۵۴ پنجره‌ای شامل ۱۶۲ درخواست شبکه است؛ اجرای آن برای هر commit یا هر پایش روزانه ضروری نیست. زمان‌بندی به‌صورت هفتگی/درخواست دستی تنظیم شد.
 - pipeline روزانه همچنان داده ایستگاه، مدل‌های جاری، آرشیو forecast و verification چرخه‌های قبلی را به‌روزرسانی می‌کند؛ آزمون‌های PR و push بدون وابستگی به سرویس‌های هواشناسی اجرا می‌شوند.
 - سقف زمانی مرحله verification به ۱۰ دقیقه افزایش یافت تا بارگیری آرشیوهای بیشتر در محدوده ۲۵۰ candidate فرصت کافی داشته باشد؛ سقف کل job برابر ۶۰ دقیقه است.
+
+## قرنطینه عملیاتی اجرای قدیمی GitHub Actions
+
+**شناسه قرنطینه:** `GH-ACTIONS-STALE-QUEUE-2026-11-12`  
+**دامنه:** فقط نه اجرای قدیمی workflow کنترل کیفیت `.github/workflows/schema-qa.yml` در branch `main`.  
+**نوع قرنطینه:** ثبت و جداسازی مستنداتی در مخزن؛ این اقدام اجرای workflow را در سمت سرور GitHub جابه‌جا، لغو یا حذف نمی‌کند.
+
+### قواعد قرنطینه
+- شناسه‌های زیر قدیمی و خارج از مسیر عادی ارزیابی اجرای جاری هستند؛ در گزارش‌های عملیاتی جدید نباید با اجرای معتبر یا معیار پذیرش CI اشتباه شوند.
+- هیچ‌یک از این شناسه‌ها به‌عنوان شاهد موفقیت یا شکست کد فعلی استفاده نشوند.
+- اجرای جدید باید بر اساس SHA همان commit و نتیجه CI خودش ارزیابی شود؛ وضعیت این فهرست جایگزین بررسی اجرای جدید نیست.
+- این ثبت، کد، commitها، artifactها یا تاریخچه GitHub Actions را حذف نمی‌کند.
+- خروج از قرنطینه فقط پس از رفع وضعیت سمت GitHub و بازبینی مجدد شناسه‌ها انجام شود.
+
+### شناسه‌های ثبت‌شده
+| Run ID | رویداد | Branch | Commit کوتاه | وضعیت در زمان ثبت |
+|---|---|---|---|---|
+| 43097920313 | push | main | 6bdf7178c2ca | queued |
+| 43097066234 | push | main | 37f70d94f6bd | queued |
+| 43097052623 | push | main | eab2e41e6663 | queued |
+| 43097035777 | push | main | 5f8a2c76434b | queued |
+| 43096415205 | push | main | 7d82db6f4f6e | queued |
+| 43096293440 | push | main | d5b7820a324a | queued |
+| 43096126317 | push | main | 868b46a554b5 | queued |
+| 43095994934 | push | main | df0390c4f083 | queued |
+| 43095604564 | push | main | 6ecbbbd21300 | queued |
+
+### پیوند مستقیم اجراها
+- [Run 43097920313](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43097920313)
+- [Run 43097066234](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43097066234)
+- [Run 43097052623](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43097052623)
+- [Run 43097035777](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43097035777)
+- [Run 43096415205](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43096415205)
+- [Run 43096293440](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43096293440)
+- [Run 43096126317](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43096126317)
+- [Run 43095994934](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43095994934)
+- [Run 43095604564](https://github.com/mahdisharifi0665-sketch/Baranban-Abdan/actions/runs/43095604564)
+
+**یادداشت:** وضعیت جدول snapshot زمان ایجاد این سند است. برای اطلاع از وضعیت فعلی، صفحه هر Run یا API رسمی GitHub Actions باید دوباره بررسی شود.
+
