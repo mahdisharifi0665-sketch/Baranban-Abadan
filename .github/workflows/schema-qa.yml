@@ -25,7 +25,7 @@ jobs:
           node-version: "22"
           package-manager-cache: false
       - name: Install pinned validators
-        run: npm install --no-save --no-package-lock ajv@8.20.0 ajv-formats@3.0.1
+        run: npm install --no-save --no-package-lock ajv@8.20.0 ajv-formats@3.0.1 mqtt@5.14.1
       - name: Validate schema and regression cases
         run: npm run test:schema
       - name: Test precipitation aggregation and ensemble probability
@@ -48,6 +48,10 @@ jobs:
         run: npm run test:ogimet-synop
       - name: Probe live OGIMET SYNOP observations for Bandar-e-Dayyer
         run: npm run probe:ogimet-synop
+      - name: Probe IRIMO WIS2 public SYNOP notification feed
+        timeout-minutes: 2
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
+        run: node qa/probe-irimo-wis2.mjs
       - name: Probe Open-Meteo historical single-run archives for recent observed windows
         timeout-minutes: 5
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
