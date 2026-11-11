@@ -55,6 +55,21 @@ assert.equal(aggregatePrecipitation(boundaryCross,{start:t(24),end:t(48)}).reaso
 const localTimeSeries=series(Array(24).fill(0)); localTimeSeries[0]={...localTimeSeries[0],start:"2026-11-11T00:00:00"};
 assert.equal(aggregatePrecipitation(localTimeSeries,window).reason,"invalid_timestamp");
 assert.equal(aggregatePrecipitation(series(Array(24).fill(0.1)),window).totalMm,2.4);
+for (const invalidTimestamp of [
+  "2026-02-30T00:00:00Z",
+  "2026-04-31T00:00:00Z",
+  "2026-11-11T24:00:00Z",
+  "2026-11-11T12:60:00Z",
+  "2026-11-11T12:00:60Z"
+]) {
+  const invalidSeries=series(Array(24).fill(0));
+  invalidSeries[0]={...invalidSeries[0],start:invalidTimestamp};
+  assert.equal(aggregatePrecipitation(invalidSeries,window).reason,"invalid_timestamp",`reject normalized invalid timestamp ${invalidTimestamp}`);
+}
+const outOfWindowIntervals=[...series(Array(24).fill(0.1)),...series(Array(24).fill(0.2)).map(x=>({...x,start:new Date(Date.parse(x.start)+24*H).toISOString(),end:new Date(Date.parse(x.end)+24*H).toISOString()}))];
+const scopedAggregate=aggregatePrecipitation(outOfWindowIntervals,window);
+assert.equal(scopedAggregate.ok,true);
+assert.equal(scopedAggregate.intervalCount,24,"intervalCount must include only intervals contributing to the requested window");
 assert.equal(aggregatePrecipitation(series([4.999999,...Array(23).fill(0)]),window).totalMm,4.999999);
 
 const members=[
