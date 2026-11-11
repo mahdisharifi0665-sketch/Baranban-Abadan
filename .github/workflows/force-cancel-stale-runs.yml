@@ -1,0 +1,48 @@
+name: Force-cancel stale orphaned Actions runs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  force-cancel:
+    name: Force-cancel the nine identified stale runs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request force-cancel for the nine listed run IDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set +e
+          ids=(
+            43097920313
+            43097066234
+            43097052623
+            43097035777
+            43096415205
+            43096293440
+            43096126317
+            43095994934
+            43095604564
+          )
+          for id in "${ids[@]}"; do
+            echo "=== Force-cancel request for run $id ==="
+            response=$(curl --silent --show-error --write-out '\nHTTP_STATUS:%{http_code}' \
+              --request POST \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GH_REPOSITORY/actions/runs/$id/force-cancel")
+            status=$(printf '%s\n' "$response" | sed -n 's/^HTTP_STATUS://p' | tail -n 1)
+            body=$(printf '%s\n' "$response" | sed '/^HTTP_STATUS:/d')
+            echo "HTTP status: ${status:-unknown}"
+            if [ -n "$body" ]; then
+              echo "$body"
+            fi
+          done
