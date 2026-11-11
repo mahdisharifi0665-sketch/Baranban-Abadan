@@ -112,7 +112,8 @@
         "https://meteostat.net/en/station/41170"
       ],
       "evidence_note": "داده تاریخی ایستگاه فرودگاهی قطر؛ به علت فاصله زیاد تنها برای مقایسه سینوپتیکی و تحلیل منطقه‌ای مناسب است.",
-      "coordinates_verified": true
+      "coordinates_verified": true,
+      "archive_ingestion_enabled": false
     },
     {
       "station_id": "ICAO-OIKQ",
@@ -132,7 +133,8 @@
         "https://meteostat.net/en/station/OIKQ0"
       ],
       "evidence_note": "بسیار دور از آبدان؛ تنها مرجع زمینه‌ای خلیج فارس و نه ورودی مستقیم ارزیابی بارش محلی.",
-      "coordinates_verified": true
+      "coordinates_verified": true,
+      "archive_ingestion_enabled": false
     },
     {
       "station_id": "LOCAL-ABADAN-RAIN-GAUGE-REPORTED",
