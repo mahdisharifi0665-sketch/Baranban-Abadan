@@ -156,6 +156,111 @@
         "https://t.me/s/weatherboushehrhelleh"
       ],
       "evidence_note": "A historical public report dated 1396/09/30 quoting Ali Zaeri, head of Dayyer County Water Resources Office, explicitly identified rain-gauge stations in Dayyer, Abadan and Konari and reported seasonal totals of 119, 71 and 61 mm respectively. This supports the existence of a local Abadan rain gauge, but its exact coordinates, station code, instrument, current operator contact, observation cadence and machine-readable feed remain unverified. Metadata-only candidate; do not ingest until original station records and metadata are confirmed."
+    },
+    {
+      "station_id": "WMO-40592",
+      "name": "Wafra",
+      "country": "Kuwait",
+      "wmo_id": "40592",
+      "icao_id": null,
+      "latitude": 28.55641389,
+      "longitude": 48.05994139,
+      "elevation_m": 105,
+      "distance_from_abadan_km": 367.1,
+      "station_role": "supplementary_synoptic",
+      "precipitation_status": "historical_archive_candidate",
+      "direct_abadan_gauge": false,
+      "operational_ingestion_enabled": false,
+      "archive_ingestion_enabled": false,
+      "source_urls": [
+        "https://met.gov.kw/Climate/climate.php?lang=eng"
+      ],
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40592، مختصات و ارتفاع 105 متر را برای ایستگاه Wafra با نوع Synoptic/Agricultural ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. صرفاً نامزد زمینه منطقه‌ای در فاصله حدود 367.1 کیلومتری آبدان است.",
+      "coordinates_verified": true
+    },
+    {
+      "station_id": "WMO-40594",
+      "name": "Nuwaisib",
+      "country": "Kuwait",
+      "wmo_id": "40594",
+      "icao_id": null,
+      "latitude": 28.54231778,
+      "longitude": 48.38918611,
+      "elevation_m": 21,
+      "distance_from_abadan_km": 335,
+      "station_role": "supplementary_synoptic",
+      "precipitation_status": "historical_archive_candidate",
+      "direct_abadan_gauge": false,
+      "operational_ingestion_enabled": false,
+      "archive_ingestion_enabled": false,
+      "source_urls": [
+        "https://met.gov.kw/Climate/climate.php?lang=eng"
+      ],
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40594، مختصات و ارتفاع 21 متر را برای ایستگاه Nuwaisib با نوع Climatic ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. صرفاً نامزد زمینه منطقه‌ای در فاصله حدود 335.0 کیلومتری آبدان است.",
+      "coordinates_verified": true
+    },
+    {
+      "station_id": "WMO-40562",
+      "name": "Sabah Al Ahmad",
+      "country": "Kuwait",
+      "wmo_id": "40562",
+      "icao_id": null,
+      "latitude": 28.78386111,
+      "longitude": 48.07446861,
+      "elevation_m": 60,
+      "distance_from_abadan_km": 369.8,
+      "station_role": "supplementary_synoptic",
+      "precipitation_status": "historical_archive_candidate",
+      "direct_abadan_gauge": false,
+      "operational_ingestion_enabled": false,
+      "archive_ingestion_enabled": false,
+      "source_urls": [
+        "https://met.gov.kw/Climate/climate.php?lang=eng"
+      ],
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40562، مختصات و ارتفاع 60 متر را برای ایستگاه Sabah Al Ahmad با نوع Synoptic ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. صرفاً نامزد زمینه منطقه‌ای در فاصله حدود 369.8 کیلومتری آبدان است.",
+      "coordinates_verified": true
+    },
+    {
+      "station_id": "WMO-40595",
+      "name": "Qaruh Island",
+      "country": "Kuwait",
+      "wmo_id": "40595",
+      "icao_id": null,
+      "latitude": 28.81619167,
+      "longitude": 48.77435278,
+      "elevation_m": 4,
+      "distance_from_abadan_km": 304.2,
+      "station_role": "supplementary_synoptic",
+      "precipitation_status": "historical_archive_candidate",
+      "direct_abadan_gauge": false,
+      "operational_ingestion_enabled": false,
+      "archive_ingestion_enabled": false,
+      "source_urls": [
+        "https://met.gov.kw/Climate/climate.php?lang=eng"
+      ],
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40595، مختصات و ارتفاع 4 متر را برای ایستگاه دریایی Qaruh Island ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. به علت ماهیت جزیره‌ای/دریایی فقط نامزد زمینه منطقه‌ای در فاصله حدود 304.2 کیلومتری آبدان است.",
+      "coordinates_verified": true
+    },
+    {
+      "station_id": "WMO-40596",
+      "name": "Umm Almaradim Island",
+      "country": "Kuwait",
+      "wmo_id": "40596",
+      "icao_id": null,
+      "latitude": 28.67652278,
+      "longitude": 48.65279472,
+      "elevation_m": 7,
+      "distance_from_abadan_km": 312.2,
+      "station_role": "supplementary_synoptic",
+      "precipitation_status": "historical_archive_candidate",
+      "direct_abadan_gauge": false,
+      "operational_ingestion_enabled": false,
+      "archive_ingestion_enabled": false,
+      "source_urls": [
+        "https://met.gov.kw/Climate/climate.php?lang=eng"
+      ],
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40596، مختصات و ارتفاع 7 متر را برای ایستگاه دریایی Umm Almaradim Island ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. به علت ماهیت جزیره‌ای/دریایی فقط نامزد زمینه منطقه‌ای در فاصله حدود 312.2 کیلومتری آبدان است.",
+      "coordinates_verified": true
     }
   ],
   "providers": [
@@ -221,6 +326,15 @@
       "access_requirement": "Subscribe to the WIS2 Global Broker MQTT topic origin/a/wis2/ir-irimo/data/recommended/weather/surface-based-observations/synop. The recommended data topic may apply access controls; no successful payload download has been verified.",
       "source_url": "https://wis2-gdc.weather.gc.ca/collections/wis2-discovery-metadata/items/urn%3Awmo%3Amd%3Air-irimo%3Areco.surface-based-observations.synop?f=html",
       "notes": "WIS2 discovery metadata identifies IRIMO as the dataset contact and lists precipitation among the variables. The metadata was updated 2025-09-06. The origin broker notification, canonical data link, BUFR payload and WMO 40872 coverage have not been tested; do not use this provider operationally until validated."
+    },
+    {
+      "provider_id": "KUWAIT-MET-STATION-CATALOG",
+      "name": "Kuwait Meteorological Department official station catalog",
+      "status": "historical_context_only",
+      "capability": "فهرست رسمی ایستگاه‌های خودکار زمینی و دریایی کویت با شناسه WMO، نام، مختصات، ارتفاع و نوع ایستگاه.",
+      "access_requirement": "دسترسی عمومی به کاتالوگ؛ دسترسی به سری زمانی خام بارش و cadence هر ایستگاه باید جداگانه تأیید شود.",
+      "source_url": "https://met.gov.kw/Climate/climate.php?lang=eng",
+      "notes": "در registry فقط metadata پنج ایستگاه ثبت شده است. هیچ feed بارش یا آرشیو قابل ingest در این بررسی تأیید نشده؛ بنابراین archive_ingestion_enabled و operational_ingestion_enabled برای همه این ایستگاه‌ها false باقی می‌مانند."
     }
   ]
 }
