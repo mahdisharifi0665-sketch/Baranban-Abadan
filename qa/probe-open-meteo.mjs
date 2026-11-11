@@ -16,7 +16,7 @@ async function getJson(base, params) {
   let json;
   try { json = JSON.parse(body); } catch { throw new Error(`Invalid JSON from ${url.hostname}`); }
   if (json.error) throw new Error(json.reason || "API returned error");
-  Object.defineProperty(json, "__payloadHash", {value:createHash("sha256").update(JSON.stringify(json)).digest("hex"), enumerable:false});
+  Object.defineProperty(json, "__payloadHash", {value:createHash("sha256").update(body).digest("hex"), enumerable:false});
   return json;
 }
 
@@ -54,7 +54,7 @@ async function deterministic(model) {
   assert.ok(precipCheck.arraysAligned, model + " precipitation arrays are not aligned with timestamps");
   assert.equal(json.daily?.time?.length,DAYS,model + " daily forecast does not cover requested horizon");
   assert.equal(json.daily?.precipitation_sum?.length,DAYS,model + " daily precipitation array length mismatch");
-  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
 }
 
 async function ensemble(model) {
