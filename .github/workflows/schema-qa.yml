@@ -49,6 +49,7 @@ jobs:
       - name: Probe live OGIMET SYNOP observations for Bandar-e-Dayyer
         run: npm run probe:ogimet-synop
       - name: Probe Open-Meteo historical single-run archive for one QC-approved event window
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
         timeout-minutes: 2
         run: node qa/probe-open-meteo-single-runs.mjs
       - name: Test forecast and observation verification metrics

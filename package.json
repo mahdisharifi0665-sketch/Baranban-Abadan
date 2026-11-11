@@ -14,6 +14,7 @@
     "probe:ogimet-synop":"node qa/probe-ogimet-synop.mjs",
     "test:verification":"node qa/test-forecast-observation-verification.mjs",
     "verify:observations":"node qa/run-verification.mjs",
+    "backtest:single-runs":"node qa/backtest-open-meteo-single-runs.mjs",
     "probe:noaa-gsod":"node qa/probe-noaa-gsod.mjs"
   },
   "devDependencies":{"ajv":"8.20.0","ajv-formats":"3.0.1"}
