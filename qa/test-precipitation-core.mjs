@@ -11,13 +11,16 @@ assert.equal(sum.ok,true);
 assert.equal(sum.totalMm,6);
 assert.equal(sum.intervalCount,24);
 
-for (const [amount,expected] of [[0,false],[4.9,false],[5,true],[5.1,true],[9.9,false],[10,true],[10.1,true],[24.9,false],[25,true],[25.1,true]]) {
+for (const amount of [0,4.9,5,5.1,9.9,10,10.1,24.9,25,25.1]) {
   const result=aggregatePrecipitation(series([amount,...Array(23).fill(0)]),window);
   assert.equal(result.ok,true);
-  for (const threshold of [5,10,25]) {
-    if (amount===threshold) assert.equal(result.totalMm>=threshold,expected);
-  }
+  assert.equal(result.totalMm,amount);
 }
+const thresholdMembers=[4.9,5,9.9,10,24.9,25,25.1].map((amount,i)=>({id:String(i),intervals:series([amount,...Array(23).fill(0)])}));
+const thresholdConfig={minValidMembers:7,minMemberCoverage:1};
+assert.equal(ensembleExceedance(thresholdMembers,window,5,thresholdConfig).probability,6/7);
+assert.equal(ensembleExceedance(thresholdMembers,window,10,thresholdConfig).probability,4/7);
+assert.equal(ensembleExceedance(thresholdMembers,window,25,thresholdConfig).probability,2/7);
 assert.equal(aggregatePrecipitation(series(Array(23).fill(0)),window).reason,"incomplete_window");
 const gap=series(Array(24).fill(0)); gap[12]={...gap[12],start:t(13),end:t(14)};
 assert.equal(aggregatePrecipitation(gap,window).reason,"time_gap");
