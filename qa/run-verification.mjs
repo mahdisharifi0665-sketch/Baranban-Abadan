@@ -17,7 +17,7 @@ for(let page=1;page<=5;page++){const listing=await fetch(api+"&page="+page,{head
 const cutoff=Date.now()-30*86400000;
 const candidates=inventory.filter(a=>a&&(a.name?.startsWith("baranyar-forecast-archive-")||a.name?.startsWith("baranban-forecast-archive-"))&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff);
 console.log("Artifact inventory returned "+inventory.length+" records; recent forecast candidates "+candidates.length);
-const artifacts=selectForecastArtifactsForVerification(inventory,observedWindows,{lookbackDays:30,limit:20});
+const artifacts=selectForecastArtifactsForVerification(inventory,observedWindows,{lookbackDays:30,limit:100});
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"baranban-verification-"));
 const archives=[],downloadErrors=[];
 console.log("Forecast artifacts selected for verification: "+artifacts.length+"; observation windows: "+observedWindows.length+"; latest observation window start: "+(observedWindows.length?new Date(observedWindows.reduce((m,w)=>Math.max(m,Date.parse(w.window_start_utc)),Number.NEGATIVE_INFINITY)).toISOString():"none"));
