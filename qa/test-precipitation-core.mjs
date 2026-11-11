@@ -54,4 +54,8 @@ assert.equal(p.validMembers,4);
 assert.equal(ensembleExceedance([...members,{id:"bad",intervals:series(Array(23).fill(0))}],window,5,{minValidMembers:5,minMemberCoverage:1}).probability,null);
 assert.equal(ensembleExceedance(members,window,5,{minValidMembers:5,minMemberCoverage:0.5}).probability,null);
 assert.equal(ensembleExceedance(members,window,-1,{minValidMembers:1,minMemberCoverage:1}).reason,"invalid_threshold");
+const incompleteMember={id:"partial",intervals:series(Array(23).fill(0))};
+const allPartial=ensembleExceedance([incompleteMember,incompleteMember],window,5,{minValidMembers:1,minMemberCoverage:1});
+assert.equal(allPartial.probability,null);
+assert.equal(allPartial.reason,"insufficient_valid_members");
 console.log("PASS: precipitation core tests (interval coverage, gaps, overlaps, nulls, units, thresholds, ensemble denominator and coverage policy).");
