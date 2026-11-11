@@ -110,11 +110,12 @@ async function ensemble(model) {
   const dailyApiDates=json.daily?.time||[];
   const dailyEnsemble= dailyApiDates.map((date,i)=>{
     const vals=dailyValuesByMember.map(m=>m.values?.[i]);
-    const valid=vals.filter(Number.isFinite);
+    const valid=vals.filter(v=>Number.isFinite(v)&&v>=0);
+    const negativeDailyValues=vals.filter(v=>Number.isFinite(v)&&v<0).length;
     const total=dailyValuesByMember.length;
     const thresholds=[5,10,25];
     const probabilities=Object.fromEntries(thresholds.map(th=>[String(th),valid.length===total && total>0 ? valid.filter(v=>v>=th).length/total : null]));
-    return {date,validMembers:valid.length,totalMembers:total,probabilitiesAllMembersComplete:probabilities};
+    return {date,validMembers:valid.length,totalMembers:total,negativeDailyValues,probabilitiesAllMembersComplete:probabilities};
   });
   const dailyAggregation=Array.from({length:DAYS},(_,i)=>{
     const date=addDays(firstForecastDate,i), win=calendarDayWindow(date,TIMEZONE);
