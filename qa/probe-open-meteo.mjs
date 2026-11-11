@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {createHash} from "node:crypto";
 
 const LAT = 28.0794;
 const LON = 51.7694;
@@ -15,6 +16,7 @@ async function getJson(base, params) {
   let json;
   try { json = JSON.parse(body); } catch { throw new Error(`Invalid JSON from ${url.hostname}`); }
   if (json.error) throw new Error(json.reason || "API returned error");
+  Object.defineProperty(json, "__payloadHash", {value:createHash("sha256").update(JSON.stringify(json)).digest("hex"), enumerable:false});
   return json;
 }
 
@@ -29,9 +31,12 @@ function inspectHourly(json, variable) {
   const hourly = json.hourly || {};
   const times = hourly.time || [];
   const keys = Object.keys(hourly).filter(k => k === variable || k.startsWith(variable + "_"));
+  const timeMs = times.map(t => Date.parse(t));
+  const monotonicHourly = timeMs.every((v,i)=>Number.isFinite(v) && (i===0 || v-timeMs[i-1]===3600000));
+  const arraysAligned = keys.every(k=>Array.isArray(hourly[k]) && hourly[k].length===times.length);
   const nonNull = keys.reduce((n,k)=>n+(hourly[k] || []).filter(v=>v !== null && Number.isFinite(v)).length,0);
   const expected = keys.reduce((n,k)=>n+(hourly[k] || []).length,0);
-  return {hours:times.length, first:times[0] ?? null, last:times.at(-1) ?? null, variableFields:keys.length, validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0};
+  return {hours:times.length, first:times[0] ?? null, last:times.at(-1) ?? null, monotonicHourly, arraysAligned, variableFields:keys.length, validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0};
 }
 
 async function deterministic(model) {
@@ -44,7 +49,12 @@ async function deterministic(model) {
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   assert.ok(json.hourly_units?.precipitation, model + " missing precipitation unit");
-  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, precipitation:inspectHourly(json,"precipitation"), cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
+  const precipCheck=inspectHourly(json,"precipitation");
+  assert.ok(precipCheck.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
+  assert.ok(precipCheck.arraysAligned, model + " precipitation arrays are not aligned with timestamps");
+  assert.equal(json.daily?.time?.length,DAYS,model + " daily forecast does not cover requested horizon");
+  assert.equal(json.daily?.precipitation_sum?.length,DAYS,model + " daily precipitation array length mismatch");
+  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, cape:inspectHourly(json,"cape"), dailyDays:json.daily?.time?.length ?? 0, dailyPrecipitation:json.daily?.precipitation_sum ?? []};
 }
 
 async function ensemble(model) {
@@ -58,7 +68,9 @@ async function ensemble(model) {
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   const precipitation = inspectHourly(json,"precipitation");
   assert.ok(precipitation.variableFields > 0, model + " returned no precipitation member fields");
-  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, precipitation, cape:inspectHourly(json,"cape")};
+  assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
+  assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
+  return {model, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
