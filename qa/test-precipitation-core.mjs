@@ -35,6 +35,10 @@ assert.equal(aggregatePrecipitation(negative,window).reason,"missing_or_invalid_
 const wrongUnit=series(Array(24).fill(0)); wrongUnit[4]={...wrongUnit[4],unit:"mm/h"};
 assert.equal(aggregatePrecipitation(wrongUnit,window).reason,"unit_mismatch");
 assert.equal(aggregatePrecipitation(series(Array(24).fill(0)),{start:t(24),end:t(0)}).reason,"invalid_window");
+const localTimeSeries=series(Array(24).fill(0)); localTimeSeries[0]={...localTimeSeries[0],start:"2026-11-11T00:00:00"};
+assert.equal(aggregatePrecipitation(localTimeSeries,window).reason,"invalid_timestamp");
+assert.equal(aggregatePrecipitation(series(Array(24).fill(0.1)),window).totalMm,2.4);
+assert.equal(aggregatePrecipitation(series([4.999999,...Array(23).fill(0)]),window).totalMm,4.999999);
 
 const members=[
  {id:"m1",intervals:series([5,...Array(23).fill(0)])},
