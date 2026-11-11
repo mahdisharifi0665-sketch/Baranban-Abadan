@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import {mkdir,writeFile} from "node:fs/promises";
+import {createForecastArchiveDocument} from "../src/forecast-archive.mjs";
 import {createHash} from "node:crypto";
 import {aggregatePrecipitation,ensembleExceedance,ensembleDailyExceedance,createEnsembleCoveragePolicy} from "../src/precipitation-core.mjs";
 import {buildHourlyPrecipitationIntervals,calendarDayWindow} from "../src/open-meteo-time-adapter.mjs";
@@ -30,6 +32,7 @@ async function getJson(base, params) {
   try { json = JSON.parse(body); } catch { throw new Error(`Invalid JSON from ${url.hostname}`); }
   if (json.error) throw new Error(json.reason || "API returned error");
   Object.defineProperty(json, "__payloadHash", {value:createHash("sha256").update(body).digest("hex"), enumerable:false});
+  Object.defineProperty(json, "__rawPayload", {value:body, enumerable:false});
   return json;
 }
 
@@ -98,7 +101,7 @@ async function deterministic(model) {
     const difference=comparable?Number(Math.abs(dailyValue-hourlyValue).toFixed(6)):null;
     return {date:day.date,dailyApiMm:Number.isFinite(dailyValue)?dailyValue:null,hourlyAggregateMm:hourlyValue,absoluteDifferenceMm:difference,match:comparable?difference<=0.1:null};
   });
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, dailyApi, dailyComparison:{comparableDays:dailyComparison.filter(x=>x.match!==null).length,mismatches:dailyComparison.filter(x=>x.match===false),days:dailyComparison}, cape:inspectHourly(json,"cape"), requestedWindow};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, rawPayload:json.__rawPayload, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, dailyApi, dailyComparison:{comparableDays:dailyComparison.filter(x=>x.match!==null).length,mismatches:dailyComparison.filter(x=>x.match===false),days:dailyComparison}, cape:inspectHourly(json,"cape"), requestedWindow};
 }
 
 async function ensemble(model) {
@@ -158,7 +161,7 @@ async function ensemble(model) {
   });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:{strict:"strict-100-v1",candidate:"candidate-90-v1",candidateStatus:"uncalibrated-diagnostic-only",approvedForOperationalUse:false}}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, rawPayload:json.__rawPayload, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:{strict:"strict-100-v1",candidate:"candidate-90-v1",candidateStatus:"uncalibrated-diagnostic-only",approvedForOperationalUse:false}}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
@@ -171,5 +174,12 @@ for (const model of ["ecmwf_ifs025_ensemble","ncep_gefs025","dwd_icon_global_eps
   try { results.push({type:"ensemble",...await ensemble(model)}); }
   catch (e) { failures.push({type:"ensemble",model,error:String(e)}); }
 }
-console.log(JSON.stringify({target:{latitude:LAT,longitude:LON,timezone:TIMEZONE,requestedCalendarDays:10},results,failures},null,2));
+const generatedAtUtc=new Date().toISOString();
+const target={latitude:LAT,longitude:LON,timezone:TIMEZONE,requestedCalendarDays:DAYS};
 assert.equal(failures.length,0,"One or more Open-Meteo model probes failed");
+const archive=createForecastArchiveDocument({generatedAtUtc,target,results,failures});
+const archiveDirectory="artifacts/forecast-archive";
+await mkdir(archiveDirectory,{recursive:true});
+const archivePath=archiveDirectory+"/"+archive.archive_id+".json";
+await writeFile(archivePath,JSON.stringify(archive,null,2)+"\n",{flag:"wx"});
+console.log(JSON.stringify({archivePath,archiveId:archive.archive_id,generatedAtUtc,productCount:archive.product_count,failureCount:archive.failure_count,target,products:results.map(x=>({type:x.type,model:x.model,payloadSha256:x.payloadSha256,retrievedAtUtc:x.retrievedAtUtc})),failures},null,2));
