@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {createHash} from "node:crypto";
-import {aggregatePrecipitation,ensembleExceedance} from "../src/precipitation-core.mjs";
+import {aggregatePrecipitation,ensembleExceedance,ensembleDailyExceedance} from "../src/precipitation-core.mjs";
 import {buildHourlyPrecipitationIntervals,calendarDayWindow} from "../src/open-meteo-time-adapter.mjs";
 
 const LAT = 28.0794;
@@ -113,8 +113,8 @@ async function ensemble(model) {
     const valid=vals.filter(v=>Number.isFinite(v)&&v>=0);
     const negativeDailyValues=vals.filter(v=>Number.isFinite(v)&&v<0).length;
     const total=dailyValuesByMember.length;
-    const thresholds=[5,10,25];
-    const probabilities=Object.fromEntries(thresholds.map(th=>[String(th),valid.length===total && total>0 ? valid.filter(v=>v>=th).length/total : null]));
+    const policy={minValidMembers:total,minMemberCoverage:1};
+    const probabilities=Object.fromEntries([5,10,25].map(th=>[String(th),ensembleDailyExceedance(vals,th,policy).probability]));
     return {date,validMembers:valid.length,totalMembers:total,negativeDailyValues,probabilitiesAllMembersComplete:probabilities};
   });
   const dailyAggregation=Array.from({length:DAYS},(_,i)=>{
