@@ -77,6 +77,8 @@ async function deterministic(model) {
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   assert.ok(json.hourly_units?.precipitation, model + " missing precipitation unit");
+  assert.equal(json.daily?.time?.length,DAYS,model+" daily API date range mismatch");
+  assert.equal(json.daily?.precipitation_sum?.length,DAYS,model+" daily precipitation array length mismatch");
   const precipCheck=inspectHourly(json,"precipitation");
   assert.ok(precipCheck.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipCheck.arraysAligned, model + " precipitation arrays are not aligned with timestamps");
@@ -89,7 +91,14 @@ async function deterministic(model) {
     return {date,totalMm:result.ok?result.totalMm:null,reason:result.ok?null:result.reason,invalidSamples};
   });
   const dailyApi={dates:json.daily?.time||[],values:json.daily?.precipitation_sum||[],unit:json.daily_units?.precipitation_sum||null};
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, dailyApi, cape:inspectHourly(json,"cape"), requestedWindow};
+  const dailyComparison=dailyTotals.map((day,i)=>{
+    const dailyValue=dailyApi.values[i];
+    const hourlyValue=day.totalMm;
+    const comparable=Number.isFinite(dailyValue)&&dailyValue>=0&&Number.isFinite(hourlyValue);
+    const difference=comparable?Number(Math.abs(dailyValue-hourlyValue).toFixed(6)):null;
+    return {date:day.date,dailyApiMm:Number.isFinite(dailyValue)?dailyValue:null,hourlyAggregateMm:hourlyValue,absoluteDifferenceMm:difference,match:comparable?difference<=0.1:null};
+  });
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, dailyApi, dailyComparison:{comparableDays:dailyComparison.filter(x=>x.match!==null).length,mismatches:dailyComparison.filter(x=>x.match===false),days:dailyComparison}, cape:inspectHourly(json,"cape"), requestedWindow};
 }
 
 async function ensemble(model) {
@@ -108,6 +117,21 @@ async function ensemble(model) {
   const dailyKeys=Object.keys(json.daily||{}).filter(k=>k==="precipitation_sum" || k.startsWith("precipitation_sum_"));
   const dailyValuesByMember=dailyKeys.map(key=>({id:key,values:json.daily[key]}));
   const dailyApiDates=json.daily?.time||[];
+  assert.equal(dailyApiDates.length,DAYS,model+" daily API date range mismatch");
+  assert.equal(dailyKeys.length,precipitation.variableFields,model+" daily and hourly ensemble member field counts differ");
+  assert.ok(dailyValuesByMember.every(m=>Array.isArray(m.values)&&m.values.length===DAYS),model+" daily member arrays are not aligned with dates");
+  const hourlyDailyComparisons=dailyApiDates.map((date,i)=>{
+    const win=calendarDayWindow(date,TIMEZONE);
+    const differences=[];
+    for (const member of memberSeries) {
+      const dailyKey=member.id==="precipitation"?"precipitation_sum":member.id.replace(/^precipitation/,"precipitation_sum");
+      const dailyValue=json.daily?.[dailyKey]?.[i];
+      const hourlyResult=aggregatePrecipitation(member.intervals,win);
+      if (hourlyResult.ok && Number.isFinite(dailyValue) && dailyValue>=0) differences.push({member:member.id,difference:Math.abs(dailyValue-hourlyResult.totalMm)});
+    }
+    const mismatches=differences.filter(x=>x.difference>0.1);
+    return {date,comparableMembers:differences.length,mismatchCount:mismatches.length,maxAbsDifferenceMm:differences.length?Number(Math.max(...differences.map(x=>x.difference)).toFixed(6)):null,mismatchExamples:mismatches.slice(0,5)};
+  });
   const dailyEnsemble= dailyApiDates.map((date,i)=>{
     const vals=dailyValuesByMember.map(m=>m.values?.[i]);
     const valid=vals.filter(v=>Number.isFinite(v)&&v>=0);
@@ -132,7 +156,7 @@ async function ensemble(model) {
   });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:"diagnostic only: requires every ensemble member to have a complete 24-hour window"}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:"diagnostic only: requires every ensemble member to have a complete 24-hour window"}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
