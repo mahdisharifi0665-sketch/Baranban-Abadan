@@ -9,7 +9,7 @@ const ajv=new Ajv2020({allErrors:true,strict:true}); addFormats(ajv);
 const validate=ajv.compile(schema);
 assert.equal(validate(registry),true,JSON.stringify(validate.errors));
 assert.equal(validateObservationStationRegistry(registry).valid,true);
-assert.deepEqual(registry.target,{name:"Abadan",latitude:28.0801523,longitude:51.77113355});
+assert.deepEqual(registry.target,{name:"Abdan",latitude:28.0801523,longitude:51.77113355});
 assert.ok(Math.abs(haversineKm(registry.target,registry.stations[0])-31.7)<1);
 assert.equal(validateObservationStationRegistry({...registry,stations:[{...registry.stations[0],direct_abadan_gauge:true}]}).valid,false);
 assert.equal(validateObservationStationRegistry({...registry,stations:[{...registry.stations[0],operational_ingestion_enabled:true}]}).valid,false);
@@ -63,6 +63,15 @@ for (const [id, distance, country] of [
 }
 const kuwait = registry.providers.find(p => p.provider_id === "KUWAIT-MET-STATION-CATALOG");
 assert.equal(kuwait.status, "historical_context_only");
+for (const station of registry.stations.filter(s => s.country === "Kuwait" || s.station_id === "ICAO-OTBD" || s.station_id === "ICAO-OIKQ")) {
+  assert.equal(station.station_role, "distant_synoptic_context");
+  assert.equal(station.operational_ingestion_enabled, false);
+  assert.equal(station.archive_ingestion_enabled, false);
+  assert.ok(station.distance_from_abadan_km > 250);
+}
+assert.equal(registry.target.name, "Abdan");
+assert.equal(registry.distance_policy_km.local_network_max, 100);
+assert.equal(registry.distance_policy_km.regional_support_max, 250);
 assert.ok(kuwait.notes.includes("هیچ feed بارش"));
 
 console.log("PASS: observation station registry schema, provenance, distance, source status and archive-only ingestion guards.");
