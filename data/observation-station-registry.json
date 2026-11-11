@@ -2,8 +2,8 @@
   "registry_version": "1.1.0",
   "target": {
     "name": "Abadan",
-    "latitude": 28.0794,
-    "longitude": 51.7694
+    "latitude": 28.0801523,
+    "longitude": 51.77113355
   },
   "stations": [
     {
