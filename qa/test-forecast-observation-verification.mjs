@@ -35,6 +35,7 @@ const artifact=(id,created_at,extra={})=>({id,name:"baranban-forecast-archive-"+
 const selected=selectForecastArtifactsForVerification([
  artifact(1,"2026-11-11T11:00:00Z"),
  artifact(2,"2026-11-12T19:00:00Z"),
+ artifact(7,"2026-11-12T12:00:00Z"),
  artifact(3,"2026-10-01T11:00:00Z"),
  artifact(4,"2026-11-11T12:00:00Z",{expired:true}),
  artifact(5,"2026-11-11T13:00:00Z",{name:"baranban-observation-archive-5"})
