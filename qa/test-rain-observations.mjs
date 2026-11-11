@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import {validateRainObservation,auditRainObservationSeries} from "../src/rain-observations.mjs";
 const base={
- schema_version:"1.0.0",observation_id:"ABADAN-20261111-001",
- station:{station_id:"ABADAN-TEST-01",name:"Abadan test gauge",latitude:28.0794,longitude:51.7694,elevation_m:null,timezone:"Asia/Tehran",distance_from_abadan_km:0},
+ schema_version:"1.0.0",observation_id:"ABDAN-20261111-001",
+ station:{station_id:"ABDAN-TEST-01",name:"Abdan test gauge",latitude:28.0801523,longitude:51.77113355,elevation_m:null,timezone:"Asia/Tehran",distance_from_abadan_km:0},
  source:{provider:"user-supplied test fixture",source_type:"personal_gauge",source_reference:null,instrument:"manual gauge"},
  observed_start_utc:"2026-11-11T00:00:00Z",observed_end_utc:"2026-11-11T01:00:00Z",retrieved_at_utc:"2026-11-11T01:05:00Z",
  value_mm:2.4,measurement_kind:"interval_total",quality_status:"raw",quality_flags:[]
