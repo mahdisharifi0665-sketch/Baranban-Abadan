@@ -28,5 +28,5 @@ export function createForecastArchiveDocument({generatedAtUtc, target, results, 
     return product;
   });
   const cycleKey = generatedAtUtc.replace(/[-:.]/g, "");
-  return {archive_schema_version:"1.0.0",archive_id:"baranban-abadan-"+cycleKey,generated_at_utc:generatedAtUtc,project:{name:"Baranban Abadan",version:"5.1.0"},target,product_count:products.length,failure_count:failures.length,products,failures,archive_notes:{raw_payloads_included:true,payload_hash_algorithm:"SHA-256",model_run_time_status:"Provider endpoint did not expose an authoritative model run timestamp; do not infer it from retrieval time",forecast_skill_validated:false}};
+  return {archive_schema_version:"1.0.0",archive_id:"baranban-abadan-"+cycleKey,generated_at_utc:generatedAtUtc,project:{name:"Baranban Abadan",version:"6.0.0"},target,product_count:products.length,failure_count:failures.length,products,failures,archive_notes:{raw_payloads_included:true,payload_hash_algorithm:"SHA-256",model_run_time_status:"Provider endpoint did not expose an authoritative model run timestamp; do not infer it from retrieval time",forecast_skill_validated:false}};
 }
