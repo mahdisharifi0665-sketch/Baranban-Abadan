@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.0.0",
+  "registry_version": "1.1.0",
   "target": {
     "name": "Abadan",
     "latitude": 28.0794,
@@ -28,7 +28,8 @@
         "https://en.tutiempo.net/climate/01-2025/ws-408720.html",
         "https://www.ogimet.com/cgi-bin/getsynop?block=40872&begin=YYYYMMDDHHmm&end=YYYYMMDDHHmm"
       ],
-      "evidence_note": "آرشیو NOAA GSOD برای WMO 40872 به‌عنوان مرجع تاریخی پراکنده موجود است. اتصال عمومی OGIMET getsynop در آزمون زنده 60روزه 2026-11-11 تعداد 1,375 گزارش SYNOP و 237 گروه بارش داد؛ 229 بازه خام 6ساعته، 8 رکورد suspect (7 کد 666 و یک 210mm/18h) و یک هشدار tR نامشخص ثبت شد. سه تناقض iR در رکوردهای suspect هم‌پوشان هستند. QC ساخت 211 پنجره rolling-24h کامل و 53 پنجره روزانه غیرهم‌پوشان 18Z را ممکن کرد؛ یک رخداد 7.6mm در پنجره روزانه با cross-check نزدیک 8.2mm سازگار بود. ایستگاه 31.7km از آبدان فاصله دارد و ground truth مستقیم نیست."
+      "evidence_note": "آرشیو NOAA GSOD برای WMO 40872 به‌عنوان مرجع تاریخی پراکنده موجود است. اتصال عمومی OGIMET getsynop در آزمون زنده 60روزه 2026-11-11 تعداد 1,375 گزارش SYNOP و 237 گروه بارش داد؛ 229 بازه خام 6ساعته، 8 رکورد suspect (7 کد 666 و یک 210mm/18h) و یک هشدار tR نامشخص ثبت شد. سه تناقض iR در رکوردهای suspect هم‌پوشان هستند. QC ساخت 211 پنجره rolling-24h کامل و 53 پنجره روزانه غیرهم‌پوشان 18Z را ممکن کرد؛ یک رخداد 7.6mm در پنجره روزانه با cross-check نزدیک 8.2mm سازگار بود. ایستگاه 31.7km از آبدان فاصله دارد و ground truth مستقیم نیست.",
+      "coordinates_verified": true
     },
     {
       "station_id": "ICAO-OIBJ",
@@ -49,7 +50,8 @@
         "https://www.mesonet.agron.iastate.edu/request/download.phtml?network=IT__ASOS",
         "https://oibk.ir/fa/weather/oibj"
       ],
-      "evidence_note": "ایستگاه فرودگاهی با داده METAR؛ صفحه IEM صراحتاً اعلام می‌کند داده بارش برای سایت‌های خارج آمریکا در feed مورد اشاره در دسترس نیست. برای بارش تا اثبات یک منبع مستقل قابل استفاده نیست؛ ارتفاع زیاد نیز اختلاف اقلیمی ایجاد می‌کند."
+      "evidence_note": "ایستگاه فرودگاهی با داده METAR؛ صفحه IEM صراحتاً اعلام می‌کند داده بارش برای سایت‌های خارج آمریکا در feed مورد اشاره در دسترس نیست. برای بارش تا اثبات یک منبع مستقل قابل استفاده نیست؛ ارتفاع زیاد نیز اختلاف اقلیمی ایجاد می‌کند.",
+      "coordinates_verified": true
     },
     {
       "station_id": "WMO-40858",
@@ -69,7 +71,8 @@
         "https://meteostat.net/en/station/40858",
         "https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily"
       ],
-      "evidence_note": "آرشیو تاریخی طولانی‌تر از بسیاری گزینه‌ها؛ فاصله و موقعیت جغرافیایی آن را صرفاً به مرجع منطقه‌ای تبدیل می‌کند، نه جانشین باران‌سنج آبدان."
+      "evidence_note": "آرشیو تاریخی طولانی‌تر از بسیاری گزینه‌ها؛ فاصله و موقعیت جغرافیایی آن را صرفاً به مرجع منطقه‌ای تبدیل می‌کند، نه جانشین باران‌سنج آبدان.",
+      "coordinates_verified": true
     },
     {
       "station_id": "WMO-40845",
@@ -88,7 +91,8 @@
       "source_urls": [
         "https://meteostat.net/en/station/40845"
       ],
-      "evidence_note": "مرجع جزیره‌ای/دریایی دورتر؛ برای زمینه منطقه‌ای و مقایسه سامانه‌ها، نه اندازه‌گیری محلی آبدان."
+      "evidence_note": "مرجع جزیره‌ای/دریایی دورتر؛ برای زمینه منطقه‌ای و مقایسه سامانه‌ها، نه اندازه‌گیری محلی آبدان.",
+      "coordinates_verified": true
     },
     {
       "station_id": "ICAO-OTBD",
@@ -107,7 +111,8 @@
       "source_urls": [
         "https://meteostat.net/en/station/41170"
       ],
-      "evidence_note": "داده تاریخی ایستگاه فرودگاهی قطر؛ به علت فاصله زیاد تنها برای مقایسه سینوپتیکی و تحلیل منطقه‌ای مناسب است."
+      "evidence_note": "داده تاریخی ایستگاه فرودگاهی قطر؛ به علت فاصله زیاد تنها برای مقایسه سینوپتیکی و تحلیل منطقه‌ای مناسب است.",
+      "coordinates_verified": true
     },
     {
       "station_id": "ICAO-OIKQ",
@@ -126,7 +131,30 @@
       "source_urls": [
         "https://meteostat.net/en/station/OIKQ0"
       ],
-      "evidence_note": "بسیار دور از آبدان؛ تنها مرجع زمینه‌ای خلیج فارس و نه ورودی مستقیم ارزیابی بارش محلی."
+      "evidence_note": "بسیار دور از آبدان؛ تنها مرجع زمینه‌ای خلیج فارس و نه ورودی مستقیم ارزیابی بارش محلی.",
+      "coordinates_verified": true
+    },
+    {
+      "station_id": "LOCAL-ABADAN-RAIN-GAUGE-REPORTED",
+      "name": "Abadan local rain gauge (reported; metadata unverified)",
+      "country": "Iran",
+      "wmo_id": null,
+      "icao_id": null,
+      "latitude": null,
+      "longitude": null,
+      "elevation_m": null,
+      "distance_from_abadan_km": null,
+      "station_role": "local_reported_gauge",
+      "precipitation_status": "manual_reports_only",
+      "direct_abadan_gauge": true,
+      "coordinates_verified": false,
+      "operational_ingestion_enabled": false,
+      "archive_ingestion_enabled": false,
+      "source_urls": [
+        "https://jelaliyan.blogfa.com/author/jelaliyan?p=2",
+        "https://t.me/s/weatherboushehrhelleh"
+      ],
+      "evidence_note": "A historical public report quoting the Dayyer Water Resources Office stated that rain-gauge stations in Dayyer, Abadan and Konari recorded seasonal rainfall totals (119, 71 and 61 mm respectively). A secondary public weather channel has also published station rainfall totals including Abadan. This supports the existence of a local rain gauge, but its exact coordinates, station code, instrument, current operator contact and machine-readable data feed are unverified. Metadata-only candidate; do not ingest until original records and station metadata are confirmed."
     }
   ],
   "providers": [
@@ -174,6 +202,15 @@
       "access_requirement": "دسترسی عمومی HTTPS بدون credential؛ درخواست محدود و روزانه با رعایت محدودیت‌های OGIMET.",
       "source_url": "https://www.ogimet.com/cgi-bin/getsynop",
       "notes": "بازنشرگر ثالث داده‌های WMO GTS؛ برای پایش و مقایسه منطقه‌ای مناسب اما بدون تضمین مأموریت حیاتی. ایستگاه بندر دیر 31.7 کیلومتر از آبدان فاصله دارد و جایگزین باران‌سنج محلی نیست."
+    },
+    {
+      "provider_id": "ABADAN-LOCAL-GAUGE-SECONDARY-REPORTS",
+      "name": "Secondary public reports for Abadan local rain gauge",
+      "status": "manual_reports_only",
+      "capability": "Intermittent manually reported rainfall totals for local gauges, including Abadan; no verified raw time-series API.",
+      "access_requirement": "Manual review and confirmation from the Dayyer Water Resources Office or station operator; no credentials or direct feed confirmed.",
+      "source_url": "https://t.me/s/weatherboushehrhelleh",
+      "notes": "The channel is a secondary source, not the official station operator. A historical report quoting the Dayyer Water Resources Office supports the existence of a local Abadan rain gauge. Use only as manual_report after validating the exact observation period and source."
     }
   ]
 }

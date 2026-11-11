@@ -12,7 +12,7 @@
   ],
   "properties": {
     "registry_version": {
-      "const": "1.0.0"
+      "const": "1.1.0"
     },
     "target": {
       "type": "object",
@@ -50,7 +50,8 @@
           "precipitation_status",
           "direct_abadan_gauge",
           "source_urls",
-          "evidence_note"
+          "evidence_note",
+          "coordinates_verified"
         ],
         "properties": {
           "station_id": {
@@ -82,12 +83,18 @@
             "pattern": "^\\d{11}$"
           },
           "latitude": {
-            "type": "number",
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": -90,
             "maximum": 90
           },
           "longitude": {
-            "type": "number",
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": -180,
             "maximum": 180
           },
@@ -98,14 +105,18 @@
             ]
           },
           "distance_from_abadan_km": {
-            "type": "number",
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": 0
           },
           "station_role": {
             "enum": [
               "nearest_historical_reference",
               "regional_comparison",
-              "supplementary_synoptic"
+              "supplementary_synoptic",
+              "local_reported_gauge"
             ]
           },
           "precipitation_status": {
@@ -115,11 +126,12 @@
               "requires_live_parameter_verification",
               "not_yet_verified",
               "verified_sparse_daily_archive",
-              "verified_live_synop_feed"
+              "verified_live_synop_feed",
+              "manual_reports_only"
             ]
           },
           "direct_abadan_gauge": {
-            "const": false
+            "type": "boolean"
           },
           "operational_ingestion_enabled": {
             "const": false
@@ -138,6 +150,9 @@
           "evidence_note": {
             "type": "string",
             "minLength": 10
+          },
+          "coordinates_verified": {
+            "type": "boolean"
           }
         }
       }
@@ -169,7 +184,8 @@
               "not_suitable_for_foreign_precip_feed",
               "historical_context_only",
               "verified_public_daily_archive",
-              "verified_public_synop_feed"
+              "verified_public_synop_feed",
+              "manual_reports_only"
             ]
           },
           "capability": {
