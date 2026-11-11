@@ -7,7 +7,7 @@ export function selectForecastArtifactsForVerification(artifacts,observedWindows
  const latestObservationStart=observedWindows.reduce((max,w)=>{const start=Date.parse(w?.window_start_utc);return Number.isFinite(start)?Math.max(max,start):max;},Number.NEGATIVE_INFINITY);
  if(!Number.isFinite(latestObservationStart))return [];
  const cutoff=nowMs-lookbackDays*86400000;
- return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationStart)
+ return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranyar-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationStart)
   .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,limit);
 }
 
