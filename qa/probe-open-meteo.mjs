@@ -44,9 +44,22 @@ function inspectHourly(json, variable) {
   const timeMs = times.map(t => Date.parse(t));
   const monotonicHourly = timeMs.every((v,i)=>Number.isFinite(v) && (i===0 || v-timeMs[i-1]===3600000));
   const arraysAligned = keys.every(k=>Array.isArray(hourly[k]) && hourly[k].length===times.length);
-  const nonNull = keys.reduce((n,k)=>n+(hourly[k] || []).filter(v=>v !== null && Number.isFinite(v)).length,0);
-  const expected = keys.reduce((n,k)=>n+(hourly[k] || []).length,0);
-  return {hours:times.length, first:times[0] ?? null, last:times.at(-1) ?? null, requestedStart:requestedWindow.startHour, requestedEnd:requestedWindow.endHour, matchesRequestedBounds:times[0]===requestedWindow.startHour && times.at(-1)===requestedWindow.endHour, monotonicHourly, arraysAligned, variableFields:keys.length, validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0};
+  const validPerField=keys.map(k=>(hourly[k] || []).filter(v=>v !== null && Number.isFinite(v)).length);
+  const nonNull=validPerField.reduce((a,b)=>a+b,0);
+  const expected=keys.reduce((n,k)=>n+(hourly[k] || []).length,0);
+  const validMembersPerTime=times.map((_,i)=>keys.reduce((n,k)=>n+(Number.isFinite(hourly[k]?.[i])?1:0),0));
+  const firstKey=keys[0];
+  const missingExamples=firstKey ? times.filter((_,i)=>!Number.isFinite(hourly[firstKey]?.[i])).slice(0,12) : [];
+  return {
+    hours:times.length, first:times[0] ?? null, last:times.at(-1) ?? null,
+    requestedStart:requestedWindow.startHour, requestedEnd:requestedWindow.endHour,
+    matchesRequestedBounds:times[0]===requestedWindow.startHour && times.at(-1)===requestedWindow.endHour,
+    monotonicHourly, arraysAligned, variableFields:keys.length,
+    validValues:nonNull, totalValues:expected, coverage:expected ? Number((nonNull/expected).toFixed(4)) : 0,
+    perMemberValidHours:validPerField.length ? {min:Math.min(...validPerField),max:Math.max(...validPerField),fullCoverage:validPerField.filter(n=>n===times.length).length} : null,
+    validMembersPerHour:keys.length ? {min:Math.min(...validMembersPerTime),max:Math.max(...validMembersPerTime)} : null,
+    firstMemberMissingHourExamples:missingExamples
+  };
 }
 
 async function deterministic(model) {
