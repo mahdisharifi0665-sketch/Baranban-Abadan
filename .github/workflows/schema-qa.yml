@@ -41,6 +41,8 @@ jobs:
         run: npm run test:noaa-gsod
       - name: Probe NOAA GSOD Bandar-e-Dayyer archive and write observation archive
         run: npm run probe:noaa-gsod
+      - name: Discover nearby GHCNh stations and probe NOAA SSODv2 2026 files
+        run: node qa/probe-noaa-ssodv2-stations.mjs
       - name: Probe live Open-Meteo model endpoints for Abadan and write archive
         run: node qa/probe-open-meteo.mjs
       - name: Upload forecast-cycle archive (90-day interim retention)

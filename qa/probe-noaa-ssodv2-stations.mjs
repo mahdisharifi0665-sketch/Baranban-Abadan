@@ -1,0 +1,61 @@
+name: Schema QA
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * *"
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, audit/pre-engine-hardening]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-forecast-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Install pinned validators
+        run: npm install --no-save --no-package-lock ajv@8.20.0 ajv-formats@3.0.1
+      - name: Validate schema and regression cases
+        run: npm run test:schema
+      - name: Test precipitation aggregation and ensemble probability
+        run: npm run test:precipitation
+      - name: Test Open-Meteo time and calendar-day adapter
+        run: npm run test:time-adapter
+      - name: Test forecast archive envelope and payload integrity
+        run: npm run test:archive
+      - name: Test rain observation schema and time-series quality controls
+        run: npm run test:observations
+      - name: Test observation station registry and provenance guards
+        run: npm run test:station-registry
+      - name: Test NOAA GSOD daily observation adapter
+        run: npm run test:noaa-gsod
+      - name: Probe NOAA GSOD Bandar-e-Dayyer archive and write observation archive
+        run: npm run probe:noaa-gsod
+      - name: Discover nearby GHCNh stations and probe NOAA SSODv2 2026 files
+        run: node qa/probe-noaa-ssodv2-stations.mjs
+      - name: Probe live Open-Meteo model endpoints for Abadan and write archive
+        run: node qa/probe-open-meteo.mjs
+      - name: Upload forecast-cycle archive (90-day interim retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: baranban-forecast-archive-${{ github.run_id }}
+          path: artifacts/forecast-archive/*.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Upload regional observation archive (90-day interim retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: baranban-observation-archive-${{ github.run_id }}
+          path: artifacts/observation-archive/*.json
+          if-no-files-found: error
+          retention-days: 90
