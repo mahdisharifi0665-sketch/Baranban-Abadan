@@ -6,7 +6,8 @@ function median(values){const sorted=[...values].sort((a,b)=>a-b),m=Math.floor(s
 export function buildVerificationPairs(archive,observedWindows,{timezone=archive?.target?.timezone||"Asia/Tehran"}={}){
  if(!archive||!Array.isArray(archive.products)||!Array.isArray(observedWindows))throw new TypeError("archive_products_and_observed_windows_required");
  const issue=Date.parse(archive.generated_at_utc);if(!Number.isFinite(issue))throw new TypeError("invalid_forecast_archive_issue_time");
- const pairs=[],errors=[];
+ const eligibleWindows=observedWindows.filter(w=>Number.isFinite(Date.parse(w.window_start_utc))&&Date.parse(w.window_start_utc)>=issue&&Number.isFinite(Date.parse(w.window_end_utc))&&Date.parse(w.window_end_utc)>Date.parse(w.window_start_utc)&&Number.isFinite(w.total_mm));
+ const pairs=[],errors=[];if(eligibleWindows.length===0)return {pairs,errors};
  for(const product of archive.products){try{
   if(!product||!["deterministic","ensemble"].includes(product.type)||typeof product.model!=="string")throw new TypeError("invalid_forecast_product_metadata");
   const raw=JSON.parse(product.raw_payload);const hourly=raw.hourly||{},times=hourly.time;
@@ -16,7 +17,7 @@ export function buildVerificationPairs(archive,observedWindows,{timezone=archive
   if(product.type==="deterministic"){
    const key=keys.includes("precipitation")?"precipitation":keys[0];
    const intervals=buildHourlyPrecipitationIntervals(times,hourly[key],unit,timezone);
-   for(const observed of observedWindows){
+   for(const observed of eligibleWindows){
     const start=Date.parse(observed.window_start_utc),end=Date.parse(observed.window_end_utc);
     if(!Number.isFinite(start)||!Number.isFinite(end)||start<issue||end<=start||!Number.isFinite(observed.total_mm))continue;
     const result=aggregatePrecipitation(intervals,{start:observed.window_start_utc,end:observed.window_end_utc});if(!result.ok)continue;
@@ -26,7 +27,7 @@ export function buildVerificationPairs(archive,observedWindows,{timezone=archive
   } else {
    const members=keys.map(key=>({id:key,intervals:buildHourlyPrecipitationIntervals(times,hourly[key],unit,timezone)}));
    const policy=createEnsembleCoveragePolicy(members.length,"strict-100-v1");
-   for(const observed of observedWindows){
+   for(const observed of eligibleWindows){
     const start=Date.parse(observed.window_start_utc),end=Date.parse(observed.window_end_utc);
     if(!Number.isFinite(start)||!Number.isFinite(end)||start<issue||end<=start||!Number.isFinite(observed.total_mm))continue;
     const totals=members.map(m=>aggregatePrecipitation(m.intervals,{start:observed.window_start_utc,end:observed.window_end_utc})).map(r=>r.ok?r.totalMm:null);

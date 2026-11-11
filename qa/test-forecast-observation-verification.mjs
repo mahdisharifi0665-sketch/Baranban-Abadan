@@ -14,6 +14,8 @@ const deterministic=built.pairs.find(x=>x.product_type==="deterministic");
 assert.equal(deterministic.forecast_total_mm,6);assert.equal(deterministic.error_mm,1);assert.equal(deterministic.lead_bin,"0-24h");
 const ensemble=built.pairs.find(x=>x.product_type==="ensemble");
 assert.equal(ensemble.valid_members,3);assert.equal(ensemble.forecast_mean_mm,4.4);assert.equal(ensemble.probabilities["5"].probability,1/3);assert.equal(ensemble.probabilities["10"].probability,0);
+const pastWindow=buildVerificationPairs(archive,[{station_id:"WMO-40872",window_start_utc:"2026-11-08T00:00:00Z",window_end_utc:"2026-11-09T00:00:00Z",total_mm:2}]);
+assert.equal(pastWindow.pairs.length,0);assert.equal(pastWindow.errors.length,0);
 const report=scoreVerificationPairs(built.pairs,{minimumSamples:1});
 const detScore=report.groups.find(x=>x.type==="deterministic");assert.equal(detScore.continuous.mae_mm,1);assert.equal(detScore.thresholds["5"].tp,1);
 const ensScore=report.groups.find(x=>x.type==="ensemble");assert.equal(ensScore.thresholds["5"].brier_score,Number(((1/3-1)**2).toFixed(5)));
