@@ -16,7 +16,7 @@ assert.equal(validateObservationStationRegistry({...registry,stations:[{...regis
 assert.equal(validateObservationStationRegistry({...registry,stations:[{...registry.stations[0],distance_from_abadan_km:2}]}).valid,false);
 assert.equal(validateObservationStationRegistry({...registry,stations:[registry.stations[0],registry.stations[0]]}).valid,false);
 const dayyer=registry.stations.find(s=>s.station_id==="WMO-40872");
-assert.equal(dayyer.precipitation_status,"verified_sparse_daily_archive");
+assert.equal(dayyer.precipitation_status,"verified_live_synop_feed");
 assert.equal(dayyer.noaa_gsod_station_id,"40872099999");
 assert.equal(dayyer.archive_ingestion_enabled,true);
 assert.equal(dayyer.direct_abadan_gauge,false);
@@ -26,4 +26,6 @@ const ncm=registry.providers.find(p=>p.provider_id==="SA-NCM-WEATHER-API");
 assert.equal(ncm.status,"credential_gated_candidate");
 const noaa=registry.providers.find(p=>p.provider_id==="NOAA-GSOD");
 assert.equal(noaa.status,"verified_public_daily_archive");
+const ogimet=registry.providers.find(p=>p.provider_id==="OGIMET-SYNOP");
+assert.equal(ogimet.status,"verified_public_synop_feed");
 console.log("PASS: observation station registry schema, provenance, distance, source status and archive-only ingestion guards.");

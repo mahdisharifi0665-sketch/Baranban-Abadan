@@ -3,7 +3,7 @@ import path from "node:path";
 
 const ALLOWED_STATUS = new Set([
   "historical_archive_candidate","not_available_from_referenced_feed",
-  "requires_live_parameter_verification","not_yet_verified","verified_sparse_daily_archive"
+  "requires_live_parameter_verification","not_yet_verified","verified_sparse_daily_archive","verified_live_synop_feed"
 ]);
 
 export function haversineKm(a,b) {
@@ -33,8 +33,8 @@ export function validateObservationStationRegistry(registry,{distanceToleranceKm
     if(!ALLOWED_STATUS.has(station.precipitation_status)) errors.push("invalid_precipitation_status:"+station.station_id);
     if(station.direct_abadan_gauge!==false) errors.push("external_station_cannot_be_direct_abadan_gauge:"+station.station_id);
     if(station.operational_ingestion_enabled!==false) errors.push("external_station_cannot_be_operational_forecast_truth:"+station.station_id);
-    if(station.archive_ingestion_enabled===true&&station.precipitation_status!=="verified_sparse_daily_archive") errors.push("unverified_archive_ingestion_enabled:"+station.station_id);
-    if(station.precipitation_status==="verified_sparse_daily_archive"&&station.archive_ingestion_enabled!==true) errors.push("verified_archive_not_enabled:"+station.station_id);
+    if(station.archive_ingestion_enabled===true&&!["verified_sparse_daily_archive","verified_live_synop_feed"].includes(station.precipitation_status)) errors.push("unverified_archive_ingestion_enabled:"+station.station_id);
+    if(["verified_sparse_daily_archive","verified_live_synop_feed"].includes(station.precipitation_status)&&station.archive_ingestion_enabled!==true) errors.push("verified_archive_not_enabled:"+station.station_id);
     if(target&&Number.isFinite(station.latitude)&&Number.isFinite(station.longitude)&&Number.isFinite(station.distance_from_abadan_km)){
       const actual=haversineKm(target,station);
       if(Math.abs(actual-station.distance_from_abadan_km)>distanceToleranceKm) errors.push("station_distance_mismatch:"+station.station_id);
