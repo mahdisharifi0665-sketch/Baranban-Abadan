@@ -3,7 +3,6 @@ import {createHash} from "node:crypto";
 
 const LAT = 28.0794;
 const LON = 51.7694;
-const DAYS = 10;
 const TIMEZONE = "Asia/Tehran";
 const TIMEOUT_MS = 45000;
 
@@ -79,7 +78,7 @@ async function ensemble(model) {
   assert.ok(precipitation.variableFields > 0, model + " returned no precipitation member fields");
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, precipitation, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];
