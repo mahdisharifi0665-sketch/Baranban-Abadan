@@ -96,6 +96,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload forecast-cycle archive (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'Phase five full verification')) && hashFiles('artifacts/forecast-archive/*.json') != ''
+        timeout-minutes: 3
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-forecast-archive-${{ github.run_id }}
@@ -104,6 +105,7 @@ jobs:
           retention-days: 90
       - name: Upload full historical single-run backtest (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'Phase five full verification')) && hashFiles('artifacts/verification/single-run-backtest.json') != ''
+        timeout-minutes: 3
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-single-run-backtest-${{ github.run_id }}
@@ -112,6 +114,7 @@ jobs:
           retention-days: 90
       - name: Upload regional verification report (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'Phase five full verification')) && hashFiles('artifacts/verification/verification-report.json') != ''
+        timeout-minutes: 3
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-verification-report-${{ github.run_id }}
@@ -120,6 +123,7 @@ jobs:
           retention-days: 90
       - name: Upload regional observation archive (90-day interim retention)
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'Phase five full verification')) && hashFiles('artifacts/observation-archive/*.json') != ''
+        timeout-minutes: 3
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-observation-archive-${{ github.run_id }}
