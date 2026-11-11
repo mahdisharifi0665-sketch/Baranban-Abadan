@@ -1,0 +1,18 @@
+import assert from "node:assert/strict";
+import {createHash} from "node:crypto";
+import {createForecastArchiveDocument} from "../src/forecast-archive.mjs";
+const rawPayload=JSON.stringify({hourly:{time:["2026-11-12T00:00"],precipitation:[0]}});
+const hash=createHash("sha256").update(rawPayload).digest("hex");
+const base={generatedAtUtc:"2026-11-11T10:00:00.000Z",target:{latitude:28.0794,longitude:51.7694,timezone:"Asia/Tehran",requestedCalendarDays:10},results:[{type:"deterministic",model:"ecmwf_ifs",retrievedAtUtc:"2026-11-11T09:59:00.000Z",payloadSha256:hash,rawPayload}],failures:[]};
+const archive=createForecastArchiveDocument(base);
+assert.equal(archive.archive_schema_version,"1.0.0");
+assert.equal(archive.product_count,1);
+assert.equal(archive.products[0].raw_payload,rawPayload);
+assert.equal(archive.products[0].payloadSha256,hash);
+assert.equal(archive.products[0].rawPayload,undefined);
+assert.equal(archive.archive_notes.forecast_skill_validated,false);
+assert.throws(()=>createForecastArchiveDocument({...base,results:[{...base.results[0],rawPayload:undefined}]}),/raw provider payload/);
+assert.throws(()=>createForecastArchiveDocument({...base,generatedAtUtc:"yesterday"}),/ISO UTC timestamp/);
+assert.throws(()=>createForecastArchiveDocument({...base,target:{...base.target,latitude:999}}),/target metadata/);
+assert.throws(()=>createForecastArchiveDocument({...base,results:[]}),/at least one successful product/);
+console.log("PASS: immutable forecast archive envelope, raw payload/hash retention and invalid metadata rejection.");
