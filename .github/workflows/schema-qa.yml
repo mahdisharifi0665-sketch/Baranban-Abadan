@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: "22"
           package-manager-cache: false
-      - name: Cancel stale queued push runs from this workflow
+      - name: Delete obsolete orphaned queued push runs from this workflow
         if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,27 +51,27 @@ jobs:
           const listing = await fetch(endpoint, { headers });
           if (!listing.ok) throw new Error(`Could not list queued runs: HTTP ${listing.status} ${await listing.text()}`);
           const payload = await listing.json();
-          const stale = (payload.workflow_runs || []).filter(run =>
+          const obsolete = (payload.workflow_runs || []).filter(run =>
             String(run.id) !== String(GH_RUN_ID) &&
             run.event === "push" &&
             run.head_branch === "main" &&
             Number(run.id) < Number(GH_RUN_ID)
           );
-          console.log(`Found ${stale.length} older queued push run(s) to cancel.`);
+          console.log(`Found ${obsolete.length} obsolete queued push run(s) to delete.`);
           let failures = 0;
-          for (const run of stale) {
+          for (const run of obsolete) {
             const response = await fetch(
-              `${GH_API_URL}/repos/${GH_REPOSITORY}/actions/runs/${run.id}/cancel`,
-              { method: "POST", headers }
+              `${GH_API_URL}/repos/${GH_REPOSITORY}/actions/runs/${run.id}`,
+              { method: "DELETE", headers }
             );
-            if (response.ok) {
-              console.log(`Cancellation requested for run ${run.id} (${run.head_sha.slice(0, 10)}).`);
+            if (response.status === 204 || response.status === 404) {
+              console.log(`Deleted obsolete run ${run.id} (${run.head_sha.slice(0, 10)}); HTTP ${response.status}.`);
             } else {
               failures++;
-              console.error(`Could not cancel run ${run.id}: HTTP ${response.status} ${await response.text()}`);
+              console.error(`Could not delete run ${run.id}: HTTP ${response.status} ${await response.text()}`);
             }
           }
-          if (failures) throw new Error(`${failures} queued run(s) could not be cancelled.`);
+          if (failures) throw new Error(`${failures} obsolete queued run(s) could not be deleted.`);
           NODE
       - name: Install pinned validators
         run: npm install --no-save --no-package-lock ajv@8.20.0 ajv-formats@3.0.1 mqtt@5.14.1
