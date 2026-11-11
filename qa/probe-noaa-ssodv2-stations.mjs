@@ -1,61 +1,19 @@
-name: Schema QA
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "30 5 * * *"
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main, audit/pre-engine-hardening]
-
-permissions:
-  contents: read
-
-jobs:
-  validate-forecast-schema:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-          package-manager-cache: false
-      - name: Install pinned validators
-        run: npm install --no-save --no-package-lock ajv@8.20.0 ajv-formats@3.0.1
-      - name: Validate schema and regression cases
-        run: npm run test:schema
-      - name: Test precipitation aggregation and ensemble probability
-        run: npm run test:precipitation
-      - name: Test Open-Meteo time and calendar-day adapter
-        run: npm run test:time-adapter
-      - name: Test forecast archive envelope and payload integrity
-        run: npm run test:archive
-      - name: Test rain observation schema and time-series quality controls
-        run: npm run test:observations
-      - name: Test observation station registry and provenance guards
-        run: npm run test:station-registry
-      - name: Test NOAA GSOD daily observation adapter
-        run: npm run test:noaa-gsod
-      - name: Probe NOAA GSOD Bandar-e-Dayyer archive and write observation archive
-        run: npm run probe:noaa-gsod
-      - name: Discover nearby GHCNh stations and probe NOAA SSODv2 2026 files
-        run: node qa/probe-noaa-ssodv2-stations.mjs
-      - name: Probe live Open-Meteo model endpoints for Abadan and write archive
-        run: node qa/probe-open-meteo.mjs
-      - name: Upload forecast-cycle archive (90-day interim retention)
-        uses: actions/upload-artifact@v4
-        with:
-          name: baranban-forecast-archive-${{ github.run_id }}
-          path: artifacts/forecast-archive/*.json
-          if-no-files-found: error
-          retention-days: 90
-      - name: Upload regional observation archive (90-day interim retention)
-        uses: actions/upload-artifact@v4
-        with:
-          name: baranban-observation-archive-${{ github.run_id }}
-          path: artifacts/observation-archive/*.json
-          if-no-files-found: error
-          retention-days: 90
+import fs from "node:fs";
+import path from "node:path";
+import {createHash} from "node:crypto";
+const target={latitude:28.0794,longitude:51.7694};
+function csvLine(line){const out=[];let s="",q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){s+='"';i++;}else q=!q;}else if(c===","&&!q){out.push(s);s="";}else s+=c;}if(q)throw new Error("unterminated CSV quote");out.push(s);return out;}
+function rows(text){const ls=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(x=>x.trim());if(ls.length<2)return [];const h=csvLine(ls[0]).map(x=>x.trim());return ls.slice(1).map(line=>{const c=csvLine(line);return Object.fromEntries(h.map((k,i)=>[k,(c[i]??"").trim()]));});}
+function dist(a,b){const r=x=>x*Math.PI/180,d1=r(b.latitude-a.latitude),d2=r(b.longitude-a.longitude),x=Math.sin(d1/2)**2+Math.cos(r(a.latitude))*Math.cos(r(b.latitude))*Math.sin(d2/2)**2;return 6371.0088*2*Math.asin(Math.sqrt(x));}
+const listUrl="https://www.ncei.noaa.gov/oa/global-historical-climatology-network/hourly/doc/ghcnh-station-list.csv";
+let listResponse=await fetch(listUrl,{signal:AbortSignal.timeout(45000)});let listFormat="csv";
+if(!listResponse.ok){const txtUrl=listUrl.replace(".csv",".txt");listResponse=await fetch(txtUrl,{signal:AbortSignal.timeout(45000)});listFormat="fixed-width";if(!listResponse.ok)throw new Error("GHCNh station inventory unavailable: HTTP "+listResponse.status);}
+const listText=await listResponse.text();let candidates=[];
+if(listFormat==="csv"){for(const row of rows(listText)){const lat=Number(row.LATITUDE),lon=Number(row.LONGITUDE);if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;if(lat<26.8||lat>29.5||lon<50.4||lon>53.8)continue;candidates.push({station_id:row.ID||row.GHCN_ID||row.STATION_ID,name:row.NAME||row.STATION_NAME||"",wmo_id:row.WMO_ID||row.WMO||"",icao:row.ICAO||"",latitude:lat,longitude:lon,elevation_m:Number(row.ELEVATION),distance_km:Number(dist(target,{latitude:lat,longitude:lon}).toFixed(1))});}}
+else {for(const line of listText.split(/\r?\n/)){if(line.length<71)continue;const lat=Number(line.slice(12,20).trim()),lon=Number(line.slice(21,30).trim());if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<26.8||lat>29.5||lon<50.4||lon>53.8)continue;candidates.push({station_id:line.slice(0,11).trim(),name:line.slice(41,71).trim(),wmo_id:line.slice(80,85).trim(),icao:line.slice(86,90).trim(),latitude:lat,longitude:lon,elevation_m:Number(line.slice(31,37).trim()),distance_km:Number(dist(target,{latitude:lat,longitude:lon}).toFixed(1))});}}
+candidates=candidates.filter(x=>x.station_id).sort((a,b)=>a.distance_km-b.distance_km).slice(0,20);
+const year=2026;
+const probes=await Promise.all(candidates.map(async station=>{const url="https://www.ncei.noaa.gov/oa/synoptic-summary-of-the-day/v2/access/by-year/"+year+"/SSOD_"+station.station_id+"_"+year+".csv";try{const response=await fetch(url,{signal:AbortSignal.timeout(30000)});if(!response.ok)return {...station,url,http_status:response.status,available:false};const raw=await response.text(),data=rows(raw);const precip=data.filter(x=>x.total_precipitation!==undefined&&x.total_precipitation!==""&&x.total_precipitation!=="-9999");const daily24=precip.filter(x=>["D","F","G"].includes((x.total_precipitation_Measurement_Code||"").trim().toUpperCase()));const dates=data.map(x=>[x.Year,x.Month,x.Day].every(v=>v)?String(x.Year)+"-"+String(x.Month).padStart(2,"0")+"-"+String(x.Day).padStart(2,"0"):null).filter(Boolean).sort();return {...station,url,http_status:response.status,available:true,payload_bytes:Buffer.byteLength(raw),payload_sha256:createHash("sha256").update(raw).digest("hex"),record_count:data.length,precipitation_records:precip.length,strict_24h_records:daily24.length,latest_date:dates.at(-1)||null,headers:Object.keys(data[0]||{})};}catch(error){return {...station,url,available:false,error:String(error)};}}));
+const result={schema_version:"1.0.0",generated_at_utc:new Date().toISOString(),target,source:"NOAA NCEI GHCNh station inventory and SSODv2",inventory_url:listUrl,inventory_format:listFormat,candidate_count:candidates.length,candidates:probes};
+const output="artifacts/observation-archive/noaa-ssodv2-nearby-discovery.json";fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(result,null,2)+"\n");
+console.log(JSON.stringify({output,inventory_format:listFormat,candidate_count:candidates.length,candidates:probes.map(({headers,...x})=>x)},null,2));
