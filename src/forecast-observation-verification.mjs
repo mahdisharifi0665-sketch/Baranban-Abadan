@@ -4,10 +4,10 @@ const THRESHOLDS=[5,10,25];
 export function selectForecastArtifactsForVerification(artifacts,observedWindows,{nowMs=Date.now(),lookbackDays=30,limit=20}={}) {
  if(!Array.isArray(artifacts)||!Array.isArray(observedWindows))throw new TypeError("artifacts_and_observation_windows_required");
  if(!Number.isFinite(nowMs)||!Number.isFinite(lookbackDays)||lookbackDays<=0||!Number.isInteger(limit)||limit<1)throw new TypeError("invalid_artifact_selection_options");
- const latestObservationEnd=observedWindows.reduce((max,w)=>{const end=Date.parse(w?.window_end_utc);return Number.isFinite(end)?Math.max(max,end):max;},Number.NEGATIVE_INFINITY);
- if(!Number.isFinite(latestObservationEnd))return [];
+ const latestObservationStart=observedWindows.reduce((max,w)=>{const start=Date.parse(w?.window_start_utc);return Number.isFinite(start)?Math.max(max,start):max;},Number.NEGATIVE_INFINITY);
+ if(!Number.isFinite(latestObservationStart))return [];
  const cutoff=nowMs-lookbackDays*86400000;
- return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationEnd)
+ return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationStart)
   .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,limit);
 }
 
