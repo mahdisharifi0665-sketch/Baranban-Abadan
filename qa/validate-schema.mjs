@@ -4,7 +4,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
 const schema = JSON.parse(fs.readFileSync("schemas/forecast-record.schema.json", "utf8"));
-const ajv = new Ajv2020({allErrors:true, strict:true});
+const ajv = new Ajv2020({allErrors:true, strict:true, allowUnionTypes:true});
 addFormats(ajv);
 const validate = ajv.compile(schema);
 
