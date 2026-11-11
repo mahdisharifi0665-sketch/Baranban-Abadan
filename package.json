@@ -1,0 +1,21 @@
+{
+  "name":"baranban-abadan","private":true,"version":"5.1.0",
+  "description":"Schema validation and QA tooling for Baranban Abadan",
+  "scripts":{
+    "test:schema":"node qa/validate-schema.mjs",
+    "test:precipitation":"node qa/test-precipitation-core.mjs",
+    "test":"npm run test:schema && npm run test:precipitation && npm run test:time-adapter && npm run test:archive && npm run test:observations && npm run test:station-registry && npm run test:noaa-gsod",
+    "test:time-adapter":"node qa/test-open-meteo-time-adapter.mjs",
+    "test:archive":"node qa/test-forecast-archive.mjs",
+    "test:observations":"node qa/test-rain-observations.mjs",
+    "test:station-registry":"node qa/test-observation-station-registry.mjs",
+    "test:noaa-gsod":"node qa/test-noaa-gsod-observations.mjs",
+    "test:ogimet-synop":"node qa/test-ogimet-synop-observations.mjs",
+    "probe:ogimet-synop":"node qa/probe-ogimet-synop.mjs",
+    "test:verification":"node qa/test-forecast-observation-verification.mjs",
+    "verify:observations":"node qa/run-verification.mjs",
+    "backtest:single-runs":"node qa/backtest-open-meteo-single-runs.mjs",
+    "probe:noaa-gsod":"node qa/probe-noaa-gsod.mjs"
+  },
+  "devDependencies":{"ajv":"8.20.0","ajv-formats":"3.0.1"}
+}
