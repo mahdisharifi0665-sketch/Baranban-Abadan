@@ -96,7 +96,7 @@ async function ensemble(model) {
   const json = await getJson("https://ensemble-api.open-meteo.com/v1/ensemble", {
     latitude:String(LAT), longitude:String(LON),
     hourly:"precipitation,cape", daily:"precipitation_sum",
-    start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, timezone:TIMEZONE,
+    start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, start_date:firstForecastDate, end_date:addDays(firstForecastDate,DAYS-1), timezone:TIMEZONE,
     models:model, cell_selection:"land"
   });
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
