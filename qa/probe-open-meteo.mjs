@@ -72,7 +72,7 @@ async function deterministic(model) {
   const json = await getJson("https://api.open-meteo.com/v1/forecast", {
     latitude:String(LAT), longitude:String(LON),
     hourly:"precipitation,cape,relative_humidity_2m,wind_speed_10m,wind_direction_10m,pressure_msl", daily:"precipitation_sum",
-    start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, timezone:TIMEZONE, models:model, cell_selection:"land"
+    start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, start_date:firstForecastDate, end_date:addDays(firstForecastDate,DAYS-1), timezone:TIMEZONE, models:model, cell_selection:"land"
   });
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
