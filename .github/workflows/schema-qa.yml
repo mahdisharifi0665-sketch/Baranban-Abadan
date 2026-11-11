@@ -15,10 +15,11 @@ permissions:
   actions: read
 
 concurrency:
-  # Keep the historical push group key so a new push can cancel stale runs
-  # created before this policy was introduced.
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  # Isolate push, scheduled, and manual runs so a stuck run from one trigger
+  # cannot block every other trigger type. New runs replace stale runs of
+  # the same trigger type.
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 jobs:
   validate-forecast-schema:
