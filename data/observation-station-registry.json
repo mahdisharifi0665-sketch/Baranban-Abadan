@@ -1,7 +1,7 @@
 {
   "registry_version": "1.1.0",
   "target": {
-    "name": "Abadan",
+    "name": "Abdan",
     "latitude": 28.0801523,
     "longitude": 51.77113355
   },
@@ -104,7 +104,7 @@
       "longitude": 51.5667,
       "elevation_m": 11,
       "distance_from_abadan_km": 315,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -124,7 +124,7 @@
       "longitude": 55.9,
       "elevation_m": 13,
       "distance_from_abadan_km": 434,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -167,7 +167,7 @@
       "longitude": 48.05994139,
       "elevation_m": 105,
       "distance_from_abadan_km": 367.1,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -175,7 +175,7 @@
       "source_urls": [
         "https://met.gov.kw/Climate/climate.php?lang=eng"
       ],
-      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40592، مختصات و ارتفاع 105 متر را برای ایستگاه Wafra با نوع Synoptic/Agricultural ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. صرفاً نامزد زمینه منطقه‌ای در فاصله حدود 367.1 کیلومتری آبدان است.",
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40592، مختصات و ارتفاع 105 متر را برای ایستگاه Wafra با نوع Synoptic/Agricultural ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. فقط نامزد زمینه دوردست سامانه‌های جوی، خارج از شبکه محلی، در فاصله حدود 367.1 کیلومتری آبدان است.",
       "coordinates_verified": true
     },
     {
@@ -188,7 +188,7 @@
       "longitude": 48.38918611,
       "elevation_m": 21,
       "distance_from_abadan_km": 335,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -196,7 +196,7 @@
       "source_urls": [
         "https://met.gov.kw/Climate/climate.php?lang=eng"
       ],
-      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40594، مختصات و ارتفاع 21 متر را برای ایستگاه Nuwaisib با نوع Climatic ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. صرفاً نامزد زمینه منطقه‌ای در فاصله حدود 335.0 کیلومتری آبدان است.",
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40594، مختصات و ارتفاع 21 متر را برای ایستگاه Nuwaisib با نوع Climatic ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. فقط نامزد زمینه دوردست سامانه‌های جوی، خارج از شبکه محلی، در فاصله حدود 335.0 کیلومتری آبدان است.",
       "coordinates_verified": true
     },
     {
@@ -209,7 +209,7 @@
       "longitude": 48.07446861,
       "elevation_m": 60,
       "distance_from_abadan_km": 369.8,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -217,7 +217,7 @@
       "source_urls": [
         "https://met.gov.kw/Climate/climate.php?lang=eng"
       ],
-      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40562، مختصات و ارتفاع 60 متر را برای ایستگاه Sabah Al Ahmad با نوع Synoptic ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. صرفاً نامزد زمینه منطقه‌ای در فاصله حدود 369.8 کیلومتری آبدان است.",
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40562، مختصات و ارتفاع 60 متر را برای ایستگاه Sabah Al Ahmad با نوع Synoptic ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. فقط نامزد زمینه دوردست سامانه‌های جوی، خارج از شبکه محلی، در فاصله حدود 369.8 کیلومتری آبدان است.",
       "coordinates_verified": true
     },
     {
@@ -230,7 +230,7 @@
       "longitude": 48.77435278,
       "elevation_m": 4,
       "distance_from_abadan_km": 304.2,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -238,7 +238,7 @@
       "source_urls": [
         "https://met.gov.kw/Climate/climate.php?lang=eng"
       ],
-      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40595، مختصات و ارتفاع 4 متر را برای ایستگاه دریایی Qaruh Island ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. به علت ماهیت جزیره‌ای/دریایی فقط نامزد زمینه منطقه‌ای در فاصله حدود 304.2 کیلومتری آبدان است.",
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40595، مختصات و ارتفاع 4 متر را برای ایستگاه دریایی Qaruh Island ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. به علت ماهیت جزیره‌ای/دریایی فقط نامزد زمینه دوردست سامانه‌های جوی، خارج از شبکه محلی، در فاصله حدود 304.2 کیلومتری آبدان است.",
       "coordinates_verified": true
     },
     {
@@ -251,7 +251,7 @@
       "longitude": 48.65279472,
       "elevation_m": 7,
       "distance_from_abadan_km": 312.2,
-      "station_role": "supplementary_synoptic",
+      "station_role": "distant_synoptic_context",
       "precipitation_status": "historical_archive_candidate",
       "direct_abadan_gauge": false,
       "operational_ingestion_enabled": false,
@@ -259,7 +259,7 @@
       "source_urls": [
         "https://met.gov.kw/Climate/climate.php?lang=eng"
       ],
-      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40596، مختصات و ارتفاع 7 متر را برای ایستگاه دریایی Umm Almaradim Island ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. به علت ماهیت جزیره‌ای/دریایی فقط نامزد زمینه منطقه‌ای در فاصله حدود 312.2 کیلومتری آبدان است.",
+      "evidence_note": "فهرست رسمی اداره هواشناسی کویت، شناسه WMO 40596، مختصات و ارتفاع 7 متر را برای ایستگاه دریایی Umm Almaradim Island ثبت می‌کند. در این مرحله فقط metadata ایستگاه تأیید شده؛ دسترسی به سری زمانی بارش، تناوب گزارش و تازگی داده هنوز آزمایش نشده است. به علت ماهیت جزیره‌ای/دریایی فقط نامزد زمینه دوردست سامانه‌های جوی، خارج از شبکه محلی، در فاصله حدود 312.2 کیلومتری آبدان است.",
       "coordinates_verified": true
     }
   ],
@@ -336,5 +336,11 @@
       "source_url": "https://met.gov.kw/Climate/climate.php?lang=eng",
       "notes": "در registry فقط metadata پنج ایستگاه ثبت شده است. هیچ feed بارش یا آرشیو قابل ingest در این بررسی تأیید نشده؛ بنابراین archive_ingestion_enabled و operational_ingestion_enabled برای همه این ایستگاه‌ها false باقی می‌مانند."
     }
-  ]
+  ],
+  "distance_policy_km": {
+    "local_network_max": 100,
+    "regional_support_max": 250,
+    "distant_context_min_exclusive": 250,
+    "description": "فاصله‌ها از مختصات آبدان شهرستان دیر، استان بوشهر محاسبه می‌شوند؛ بیش از 250 کیلومتر فقط زمینه دوردست و خارج از ورودی مستقیم بارش محلی است."
+  }
 }
