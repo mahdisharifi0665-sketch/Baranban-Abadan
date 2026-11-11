@@ -3,7 +3,8 @@ name: Schema QA
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 5 * * *"
+    - cron: "30 5 * * *" # Daily operational data and forecast verification
+    - cron: "30 7 * * 0" # Weekly full historical backtest
   pull_request:
     branches: [main]
   push:
@@ -46,55 +47,55 @@ jobs:
       - name: Test ERA5 gridded precipitation parser and archive contract
         run: npm run test:era5-gridded
       - name: Probe public ERA5 gridded precipitation archive
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 3
         run: npm run probe:era5-gridded
       - name: Test NOAA GSOD daily observation adapter
         run: npm run test:noaa-gsod
       - name: Probe NOAA GSOD Bandar-e-Dayyer archive and write observation archive
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 3
         run: npm run probe:noaa-gsod
       - name: Discover nearby GHCNh stations and probe NOAA SSODv2 2026 files
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 5
         run: node qa/probe-noaa-ssodv2-stations.mjs
       - name: Test OGIMET SYNOP decoder and exact 24-hour aggregation
         run: npm run test:ogimet-synop
       - name: Probe live OGIMET SYNOP observations for Bandar-e-Dayyer
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 3
         run: npm run probe:ogimet-synop
       - name: Discover Kuwait regional SYNOP stations (read-only probe)
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 5
         run: node qa/probe-kuwait-synop-stations.mjs
       - name: Probe IRIMO WIS2 public SYNOP notification feed
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 4
         run: node qa/probe-irimo-wis2.mjs
       - name: Probe Open-Meteo historical single-run archives for recent observed windows
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 6
         run: node qa/probe-open-meteo-single-runs.mjs
       - name: Backtest archived daily 00Z model runs against strict regional 24-hour observations
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '30 7 * * 0')
         timeout-minutes: 8
         run: npm run backtest:single-runs
       - name: Test forecast and observation verification metrics
         run: npm run test:verification
       - name: Probe live Open-Meteo model endpoints for Abdan and write archive
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 12
         run: node qa/probe-open-meteo.mjs
       - name: Score archived forecasts against complete regional 24-hour observations
-        if: github.event_name != 'pull_request'
-        timeout-minutes: 5
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        timeout-minutes: 10
         run: npm run verify:observations
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload forecast-cycle archive (90-day interim retention)
-        if: always() && github.event_name != 'pull_request' && hashFiles('artifacts/forecast-archive/*.json') != ''
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/forecast-archive/*.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-forecast-archive-${{ github.run_id }}
@@ -102,7 +103,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 90
       - name: Upload full historical single-run backtest (90-day interim retention)
-        if: always() && github.event_name != 'pull_request' && hashFiles('artifacts/verification/single-run-backtest.json') != ''
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/verification/single-run-backtest.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-single-run-backtest-${{ github.run_id }}
@@ -110,7 +111,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
       - name: Upload regional verification report (90-day interim retention)
-        if: always() && github.event_name != 'pull_request' && hashFiles('artifacts/verification/verification-report.json') != ''
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/verification/verification-report.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-verification-report-${{ github.run_id }}
@@ -118,7 +119,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
       - name: Upload regional observation archive (90-day interim retention)
-        if: always() && github.event_name != 'pull_request' && hashFiles('artifacts/observation-archive/*.json') != ''
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/observation-archive/*.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: baranyar-observation-archive-${{ github.run_id }}
