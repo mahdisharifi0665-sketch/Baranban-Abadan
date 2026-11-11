@@ -54,11 +54,11 @@ jobs:
         run: node qa/probe-irimo-wis2.mjs
       - name: Probe Open-Meteo historical single-run archives for recent observed windows
         timeout-minutes: 5
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         run: node qa/probe-open-meteo-single-runs.mjs
       - name: Backtest archived daily 00Z model runs against strict regional 24-hour observations
         timeout-minutes: 8
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         run: npm run backtest:single-runs
       - name: Test forecast and observation verification metrics
         run: npm run test:verification
