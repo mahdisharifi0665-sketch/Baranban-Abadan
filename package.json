@@ -1,0 +1,9 @@
+{
+  "name": "baranban-abadan",
+  "private": true,
+  "version": "5.1.0",
+  "description": "Schema validation and QA tooling for Baranban Abadan",
+  "scripts": {
+    "test:schema": "node qa/validate-schema.mjs"
+  }
+}
