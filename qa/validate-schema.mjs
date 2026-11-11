@@ -33,4 +33,18 @@ assert.equal(validate({...valid, issue_time_utc:"not-a-date"}), false, "invalid 
 assert.equal(validate({...valid, product_type:"ensemble_member"}), false, "ensemble member without member metadata must fail");
 const member = {...valid, product_type:"ensemble_member", ensemble_member:1, ensemble_member_count_total:50, ensemble_member_count_valid:48};
 assert.equal(validate(member), true, JSON.stringify(validate.errors));
-console.log("PASS: schema compiles; valid record accepted; 4 invalid cases rejected; ensemble metadata accepted.");
+assert.equal(validate({...member, ensemble_member_count_valid:51}), true, "schema structure accepts count; semantic guard below must reject it");
+function validateSemantics(record) {
+  const start=Date.parse(record.valid_start_utc), end=Date.parse(record.valid_end_utc);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end<=start) return false;
+  if (record.product_type==="ensemble_member" || record.product_type==="ensemble_statistic") {
+    if (!Number.isInteger(record.ensemble_member_count_total) || !Number.isInteger(record.ensemble_member_count_valid)) return false;
+    if (record.ensemble_member_count_valid<0 || record.ensemble_member_count_valid>record.ensemble_member_count_total) return false;
+  }
+  return true;
+}
+assert.equal(validateSemantics(valid),true);
+assert.equal(validateSemantics({...valid,valid_end_utc:valid.valid_start_utc}),false,"zero-duration interval must fail semantic validation");
+assert.equal(validateSemantics({...member,ensemble_member_count_valid:51}),false,"valid ensemble count cannot exceed total count");
+assert.equal(validateSemantics({...member,ensemble_member_count_total:0}),false,"ensemble total count must be positive");
+console.log("PASS: schema compiles; structural and semantic time/ensemble-count checks passed; invalid cases rejected.");
