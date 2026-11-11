@@ -51,7 +51,6 @@ jobs:
       - name: Probe Open-Meteo historical single-run archives for recent observed windows
         timeout-minutes: 5
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/audit/pre-engine-hardening')
-        timeout-minutes: 2
         run: node qa/probe-open-meteo-single-runs.mjs
       - name: Test forecast and observation verification metrics
         run: npm run test:verification
