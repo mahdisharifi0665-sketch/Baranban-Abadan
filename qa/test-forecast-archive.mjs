@@ -7,6 +7,8 @@ const base={generatedAtUtc:"2026-11-11T10:00:00.000Z",target:{latitude:28.080152
 const archive=createForecastArchiveDocument(base);
 assert.equal(archive.archive_schema_version,"1.0.0");
 assert.equal(archive.project.version,"6.0.0");
+assert.equal(archive.project.name,"BaranYar Abdan");
+assert.ok(archive.archive_id.startsWith("baranyar-abdan-"));
 assert.equal(archive.product_count,1);
 assert.equal(archive.products[0].raw_payload,rawPayload);
 assert.equal(archive.products[0].payloadSha256,hash);
