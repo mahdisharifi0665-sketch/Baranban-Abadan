@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {buildVerificationPairs,scoreVerificationPairs} from "../src/forecast-observation-verification.mjs";
+import {buildVerificationPairs,scoreVerificationPairs,selectForecastArtifactsForVerification} from "../src/forecast-observation-verification.mjs";
 const times=[];for(let i=1;i<=24;i++){const d=new Date(Date.parse("2026-11-10T00:00:00Z")+i*3600000);times.push(d.toISOString().slice(0,16));}
 const values=v=>Array(24).fill(v);
 const payload=hourly=>JSON.stringify({hourly:{time:times,...hourly},hourly_units:{precipitation:"mm"}});
@@ -20,4 +20,17 @@ const report=scoreVerificationPairs(built.pairs,{minimumSamples:1});
 const detScore=report.groups.find(x=>x.type==="deterministic");assert.equal(detScore.continuous.mae_mm,1);assert.equal(detScore.thresholds["5"].tp,1);
 const ensScore=report.groups.find(x=>x.type==="ensemble");assert.equal(ensScore.thresholds["5"].brier_score,Number(((1/3-1)**2).toFixed(5)));
 assert.equal(report.direct_abadan_ground_truth,false);assert.equal(report.calibration_approved,false);
+
+const latestEnd=Date.parse("2026-11-12T18:00:00Z"),now=Date.parse("2026-11-13T05:30:00Z");
+const artifact=(id,created_at,extra={})=>({id,name:"baranban-forecast-archive-"+id,created_at,expired:false,archive_download_url:"https://example.invalid/"+id,...extra});
+const selected=selectForecastArtifactsForVerification([
+ artifact(1,"2026-11-11T11:00:00Z"),
+ artifact(2,"2026-11-12T19:00:00Z"),
+ artifact(3,"2026-10-01T11:00:00Z"),
+ artifact(4,"2026-11-11T12:00:00Z",{expired:true}),
+ artifact(5,"2026-11-11T13:00:00Z",{name:"baranban-observation-archive-5"})
+],[{window_start_utc:"2026-11-11T18:00:00Z",window_end_utc:"2026-11-12T18:00:00Z"}],{nowMs:now,lookbackDays:30});
+assert.deepEqual(selected.map(x=>x.id),[1]);
+assert.deepEqual(selectForecastArtifactsForVerification([artifact(6,"2026-11-11T11:00:00Z")],[{window_start_utc:"2026-11-12T18:00:00Z",window_end_utc:"2026-11-13T18:00:00Z"}],{nowMs:now}),[artifact(6,"2026-11-11T11:00:00Z")]);
+
 console.log("PASS: deterministic MAE/bias/RMSE, threshold contingency, ensemble strict probability, Brier and reliability scoring.");

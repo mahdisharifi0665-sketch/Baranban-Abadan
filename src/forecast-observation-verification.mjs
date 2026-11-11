@@ -1,6 +1,16 @@
 import {buildHourlyPrecipitationIntervals} from "./open-meteo-time-adapter.mjs";
 import {aggregatePrecipitation,createEnsembleCoveragePolicy,ensembleExceedance} from "./precipitation-core.mjs";
 const THRESHOLDS=[5,10,25];
+export function selectForecastArtifactsForVerification(artifacts,observedWindows,{nowMs=Date.now(),lookbackDays=30,limit=20}={}) {
+ if(!Array.isArray(artifacts)||!Array.isArray(observedWindows))throw new TypeError("artifacts_and_observation_windows_required");
+ if(!Number.isFinite(nowMs)||!Number.isFinite(lookbackDays)||lookbackDays<=0||!Number.isInteger(limit)||limit<1)throw new TypeError("invalid_artifact_selection_options");
+ const latestObservationEnd=observedWindows.reduce((max,w)=>{const end=Date.parse(w?.window_end_utc);return Number.isFinite(end)?Math.max(max,end):max;},Number.NEGATIVE_INFINITY);
+ if(!Number.isFinite(latestObservationEnd))return [];
+ const cutoff=nowMs-lookbackDays*86400000;
+ return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationEnd)
+  .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,limit);
+}
+
 function leadBin(hours){if(hours<=24)return "0-24h";if(hours<=48)return "24-48h";if(hours<=72)return "48-72h";if(hours<=120)return "72-120h";return "120-240h";}
 function median(values){const sorted=[...values].sort((a,b)=>a-b),m=Math.floor(sorted.length/2);return sorted.length%2?sorted[m]:(sorted[m-1]+sorted[m])/2;}
 export function buildVerificationPairs(archive,observedWindows,{timezone=archive?.target?.timezone||"Asia/Tehran"}={}){
