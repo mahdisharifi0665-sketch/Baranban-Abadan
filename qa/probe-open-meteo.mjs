@@ -36,6 +36,18 @@ async function getJson(base, params) {
   return json;
 }
 
+const verificationStart=new Date(Math.ceil(Date.now()/3600000)*3600000);
+const verificationEnd=new Date(verificationStart.getTime()+239*3600000);
+const verificationWindow={startHour:verificationStart.toISOString().slice(0,16),endHour:verificationEnd.toISOString().slice(0,16),expectedHours:240};
+async function getUtcVerificationPayload(base,model){
+ const json=await getJson(base,{latitude:String(LAT),longitude:String(LON),hourly:"precipitation",start_hour:verificationWindow.startHour,end_hour:verificationWindow.endHour,timezone:"UTC",models:model,cell_selection:"land"});
+ const check=inspectHourly(json,"precipitation");
+ assert.ok(check.monotonicHourly,model+" UTC verification timestamps are not contiguous");
+ assert.ok(check.arraysAligned,model+" UTC verification precipitation arrays are not aligned");
+ assert.equal(check.first,verificationWindow.startHour,model+" UTC verification start mismatch");
+ assert.equal(check.last,verificationWindow.endHour,model+" UTC verification end mismatch");
+ return {rawPayload:json.__rawPayload,payloadSha256:json.__payloadHash,timezone:"UTC",window:verificationWindow};
+}
 function distanceKm(lat1, lon1, lat2, lon2) {
   const rad = d => d * Math.PI / 180;
   const dLat = rad(lat2-lat1), dLon = rad(lon2-lon1);
@@ -77,6 +89,7 @@ async function deterministic(model) {
     hourly:"precipitation,cape,relative_humidity_2m,wind_speed_10m,wind_direction_10m,pressure_msl", daily:"precipitation_sum",
     start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, start_date:firstForecastDate, end_date:addDays(firstForecastDate,DAYS-1), timezone:TIMEZONE, models:model, cell_selection:"land"
   });
+  const verification=await getUtcVerificationPayload("https://api.open-meteo.com/v1/forecast",model);
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   assert.ok(json.hourly_units?.precipitation, model + " missing precipitation unit");
@@ -101,7 +114,7 @@ async function deterministic(model) {
     const difference=comparable?Number(Math.abs(dailyValue-hourlyValue).toFixed(6)):null;
     return {date:day.date,dailyApiMm:Number.isFinite(dailyValue)?dailyValue:null,hourlyAggregateMm:hourlyValue,absoluteDifferenceMm:difference,match:comparable?difference<=0.1:null};
   });
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, rawPayload:json.__rawPayload, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, dailyApi, dailyComparison:{comparableDays:dailyComparison.filter(x=>x.match!==null).length,mismatches:dailyComparison.filter(x=>x.match===false),days:dailyComparison}, cape:inspectHourly(json,"cape"), requestedWindow};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, rawPayload:json.__rawPayload, verificationRawPayload:verification.rawPayload, verificationPayloadSha256:verification.payloadSha256, verificationTimezone:verification.timezone, verificationWindow:verification.window, precipitation:precipCheck, dailyAggregation:{completeDays:dailyTotals.filter(x=>x.totalMm!==null).length,days:dailyTotals}, dailyApi, dailyComparison:{comparableDays:dailyComparison.filter(x=>x.match!==null).length,mismatches:dailyComparison.filter(x=>x.match===false),days:dailyComparison}, cape:inspectHourly(json,"cape"), requestedWindow};
 }
 
 async function ensemble(model) {
@@ -111,6 +124,7 @@ async function ensemble(model) {
     start_hour:requestedWindow.startHour, end_hour:requestedWindow.endHour, start_date:firstForecastDate, end_date:addDays(firstForecastDate,DAYS-1), timezone:TIMEZONE,
     models:model, cell_selection:"land"
   });
+  const verification=await getUtcVerificationPayload("https://ensemble-api.open-meteo.com/v1/ensemble",model);
   assert.ok(Array.isArray(json.hourly?.time) && json.hourly.time.length > 0, model + " missing hourly time");
   assert.ok(Number.isFinite(json.latitude) && Number.isFinite(json.longitude), model + " missing resolved coordinates");
   const precipitation = inspectHourly(json,"precipitation");
@@ -161,7 +175,7 @@ async function ensemble(model) {
   });
   assert.ok(precipitation.monotonicHourly, model + " hourly timestamps are not unique contiguous hourly steps");
   assert.ok(precipitation.arraysAligned, model + " ensemble precipitation arrays are not aligned with timestamps");
-  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, rawPayload:json.__rawPayload, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:{strict:"strict-100-v1",candidate:"candidate-90-v1",candidateStatus:"uncalibrated-diagnostic-only",approvedForOperationalUse:false}}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
+  return {model, retrievedAtUtc:new Date().toISOString(), modelRunTimeStatus:"not_exposed_by_endpoint", requestedWindow, resolved:{latitude:json.latitude,longitude:json.longitude,elevation:json.elevation,timezone:json.timezone,distanceFromTargetKm:distanceKm(LAT,LON,json.latitude,json.longitude)}, payloadSha256:json.__payloadHash, rawPayload:json.__rawPayload, verificationRawPayload:verification.rawPayload, verificationPayloadSha256:verification.payloadSha256, verificationTimezone:verification.timezone, verificationWindow:verification.window, precipitation, dailyAggregation:{completeDays:dailyAggregation.filter(x=>x.validMembers===x.totalMembers).length,days:dailyAggregation,probabilityPolicy:{strict:"strict-100-v1",candidate:"candidate-90-v1",candidateStatus:"uncalibrated-diagnostic-only",approvedForOperationalUse:false}}, dailyApi:{dates:dailyApiDates,memberFields:dailyKeys,memberCount:dailyKeys.length,unit:json.daily_units?.precipitation_sum||null,days:dailyEnsemble}, hourlyVsDaily:{days:hourlyDailyComparisons,comparableMemberDays:hourlyDailyComparisons.reduce((n,x)=>n+x.comparableMembers,0),mismatchCount:hourlyDailyComparisons.reduce((n,x)=>n+x.mismatchCount,0)}, cape:inspectHourly(json,"cape")};
 }
 
 const results = [];

@@ -14,8 +14,18 @@ export function createForecastArchiveDocument({generatedAtUtc, target, results, 
     if (typeof item.rawPayload !== "string" || !SHA256.test(item.payloadSha256 || "")) throw new TypeError("Each product requires its raw provider payload and SHA-256 hash");
     const actualHash=createHash("sha256").update(item.rawPayload).digest("hex");
     if (actualHash !== item.payloadSha256) throw new TypeError("Raw provider payload SHA-256 mismatch");
-    const {rawPayload,...summary}=item;
-    return {...summary,raw_payload:rawPayload};
+    const {rawPayload,verificationRawPayload,verificationPayloadSha256,verificationTimezone,verificationWindow,...summary}=item;
+    const product={...summary,raw_payload:rawPayload};
+    if(verificationRawPayload!==undefined){
+      if(typeof verificationRawPayload!=="string"||!SHA256.test(verificationPayloadSha256||""))throw new TypeError("Verification payload and SHA-256 are required together");
+      const verificationHash=createHash("sha256").update(verificationRawPayload).digest("hex");
+      if(verificationHash!==verificationPayloadSha256)throw new TypeError("Verification payload SHA-256 mismatch");
+      product.verification_raw_payload=verificationRawPayload;
+      product.verification_payload_sha256=verificationHash;
+      product.verification_timezone=verificationTimezone||"UTC";
+      product.verification_window=verificationWindow||null;
+    }
+    return product;
   });
   const cycleKey = generatedAtUtc.replace(/[-:.]/g, "");
   return {archive_schema_version:"1.0.0",archive_id:"baranban-abadan-"+cycleKey,generated_at_utc:generatedAtUtc,project:{name:"Baranban Abadan",version:"5.1.0"},target,product_count:products.length,failure_count:failures.length,products,failures,archive_notes:{raw_payloads_included:true,payload_hash_algorithm:"SHA-256",model_run_time_status:"Provider endpoint did not expose an authoritative model run timestamp; do not infer it from retrieval time",forecast_skill_validated:false}};

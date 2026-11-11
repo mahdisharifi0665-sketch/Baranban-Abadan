@@ -4,10 +4,10 @@ const THRESHOLDS=[5,10,25];
 export function selectForecastArtifactsForVerification(artifacts,observedWindows,{nowMs=Date.now(),lookbackDays=30,limit=20}={}) {
  if(!Array.isArray(artifacts)||!Array.isArray(observedWindows))throw new TypeError("artifacts_and_observation_windows_required");
  if(!Number.isFinite(nowMs)||!Number.isFinite(lookbackDays)||lookbackDays<=0||!Number.isInteger(limit)||limit<1)throw new TypeError("invalid_artifact_selection_options");
- const latestObservationStart=observedWindows.reduce((max,w)=>{const start=Date.parse(w?.window_start_utc);return Number.isFinite(start)?Math.max(max,start):max;},Number.NEGATIVE_INFINITY);
- if(!Number.isFinite(latestObservationStart))return [];
+ const latestObservationEnd=observedWindows.reduce((max,w)=>{const end=Date.parse(w?.window_end_utc);return Number.isFinite(end)?Math.max(max,end):max;},Number.NEGATIVE_INFINITY);
+ if(!Number.isFinite(latestObservationEnd))return [];
  const cutoff=nowMs-lookbackDays*86400000;
- return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationStart)
+ return artifacts.filter(a=>a&&typeof a.name==="string"&&a.name.startsWith("baranban-forecast-archive-")&&!a.expired&&typeof a.archive_download_url==="string"&&Number.isFinite(Date.parse(a.created_at))&&Date.parse(a.created_at)>=cutoff&&Date.parse(a.created_at)<=latestObservationEnd)
   .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,limit);
 }
 
@@ -15,27 +15,27 @@ function leadBin(hours){if(hours<=24)return "0-24h";if(hours<=48)return "24-48h"
 function median(values){const sorted=[...values].sort((a,b)=>a-b),m=Math.floor(sorted.length/2);return sorted.length%2?sorted[m]:(sorted[m-1]+sorted[m])/2;}
 export function buildVerificationPairs(archive,observedWindows,{timezone=archive?.target?.timezone||"Asia/Tehran"}={}){
  if(!archive||!Array.isArray(archive.products)||!Array.isArray(observedWindows))throw new TypeError("archive_products_and_observed_windows_required");
- const issue=Date.parse(archive.generated_at_utc);if(!Number.isFinite(issue))throw new TypeError("invalid_forecast_archive_issue_time");
+ const issue=Date.parse(archive.forecast_issue_time_utc||archive.generated_at_utc);if(!Number.isFinite(issue))throw new TypeError("invalid_forecast_archive_issue_time");
  const eligibleWindows=observedWindows.filter(w=>Number.isFinite(Date.parse(w.window_start_utc))&&Date.parse(w.window_start_utc)>=issue&&Number.isFinite(Date.parse(w.window_end_utc))&&Date.parse(w.window_end_utc)>Date.parse(w.window_start_utc)&&Number.isFinite(w.total_mm));
  const pairs=[],errors=[];if(eligibleWindows.length===0)return {pairs,errors};
  for(const product of archive.products){try{
   if(!product||!["deterministic","ensemble"].includes(product.type)||typeof product.model!=="string")throw new TypeError("invalid_forecast_product_metadata");
-  const raw=JSON.parse(product.raw_payload);const hourly=raw.hourly||{},times=hourly.time;
+  const useVerificationPayload=typeof product.verification_raw_payload==="string";const raw=JSON.parse(useVerificationPayload?product.verification_raw_payload:product.raw_payload);const productTimezone=useVerificationPayload?(product.verification_timezone||"UTC"):timezone;const hourly=raw.hourly||{},times=hourly.time;
   const keys=Object.keys(hourly).filter(k=>k==="precipitation"||k.startsWith("precipitation_"));
   if(!Array.isArray(times)||times.length===0||keys.length===0)throw new TypeError("forecast_hourly_precipitation_missing");
   const unit=raw.hourly_units?.precipitation||"mm";
   if(product.type==="deterministic"){
    const key=keys.includes("precipitation")?"precipitation":keys[0];
-   const intervals=buildHourlyPrecipitationIntervals(times,hourly[key],unit,timezone);
+   const intervals=buildHourlyPrecipitationIntervals(times,hourly[key],unit,productTimezone);
    for(const observed of eligibleWindows){
     const start=Date.parse(observed.window_start_utc),end=Date.parse(observed.window_end_utc);
     if(!Number.isFinite(start)||!Number.isFinite(end)||start<issue||end<=start||!Number.isFinite(observed.total_mm))continue;
     const result=aggregatePrecipitation(intervals,{start:observed.window_start_utc,end:observed.window_end_utc});if(!result.ok)continue;
     const lead=(start-issue)/3600000;
-    pairs.push({product_type:"deterministic",model:product.model,archive_id:archive.archive_id,issue_time_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:leadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_total_mm:result.totalMm,error_mm:Number((result.totalMm-observed.total_mm).toFixed(6))});
+    pairs.push({product_type:"deterministic",model:product.model,archive_id:archive.archive_id,issue_time_utc:new Date(issue).toISOString(),issue_time_basis:archive.forecast_issue_time_basis||"archive_retrieval_time",archive_generated_at_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:leadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_total_mm:result.totalMm,error_mm:Number((result.totalMm-observed.total_mm).toFixed(6))});
    }
   } else {
-   const members=keys.map(key=>({id:key,intervals:buildHourlyPrecipitationIntervals(times,hourly[key],unit,timezone)}));
+   const members=keys.map(key=>({id:key,intervals:buildHourlyPrecipitationIntervals(times,hourly[key],unit,productTimezone)}));
    const policy=createEnsembleCoveragePolicy(members.length,"strict-100-v1");
    for(const observed of eligibleWindows){
     const start=Date.parse(observed.window_start_utc),end=Date.parse(observed.window_end_utc);
@@ -44,7 +44,7 @@ export function buildVerificationPairs(archive,observedWindows,{timezone=archive
     const valid=totals.filter(Number.isFinite);if(valid.length===0)continue;
     const probabilities=Object.fromEntries(THRESHOLDS.map(th=>{const r=ensembleExceedance(members,{start:observed.window_start_utc,end:observed.window_end_utc},th,policy);return [String(th),{probability:r.probability,valid_members:r.validMembers,total_members:r.totalMembers,reason:r.reason||null}];}));
     const lead=(start-issue)/3600000;
-    pairs.push({product_type:"ensemble",model:product.model,archive_id:archive.archive_id,issue_time_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:leadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_mean_mm:Number((valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(6)),forecast_median_mm:Number(median(valid).toFixed(6)),valid_members:valid.length,total_members:members.length,probabilities});
+    pairs.push({product_type:"ensemble",model:product.model,archive_id:archive.archive_id,issue_time_utc:new Date(issue).toISOString(),issue_time_basis:archive.forecast_issue_time_basis||"archive_retrieval_time",archive_generated_at_utc:archive.generated_at_utc,window_start_utc:observed.window_start_utc,window_end_utc:observed.window_end_utc,lead_hours:Number(lead.toFixed(2)),lead_bin:leadBin(lead),station_id:observed.station_id||"WMO-40872",observed_total_mm:observed.total_mm,forecast_mean_mm:Number((valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(6)),forecast_median_mm:Number(median(valid).toFixed(6)),valid_members:valid.length,total_members:members.length,probabilities});
    }
   }
  }catch(error){errors.push({model:product?.model||null,type:product?.type||null,error:String(error)});}}
@@ -60,5 +60,5 @@ export function scoreVerificationPairs(pairs,{minimumSamples=30}={}){
    groups.push({type,model,lead_bin:leadBinName,sample_count:items.length,status:items.length>=minimumSamples?"preliminary_regional_proxy":"insufficient_sample",thresholds:brier});
   }
  }
- return {report_schema_version:"1.0.0",pair_count:pairs.length,group_count:groups.length,verification_source:"regional_proxy",station_id:"WMO-40872",station_distance_from_abadan_km:31.7,direct_abadan_ground_truth:false,calibration_approved:false,forecast_skill_validated:false,minimum_samples_for_preliminary_metrics:minimumSamples,groups,notes:["Forecast issue time is archive retrieval time; authoritative model initialization time is not exposed by provider.","Observed windows are exact rolling 24-hour intervals from the Bandar-e-Dayyer SYNOP station, not local Abadan gauge measurements.","No probability calibration or operational policy approval is inferred from these regional-proxy scores."]};
+ return {report_schema_version:"1.0.0",pair_count:pairs.length,group_count:groups.length,verification_source:"regional_proxy",station_id:"WMO-40872",station_distance_from_abadan_km:31.7,direct_abadan_ground_truth:false,calibration_approved:false,forecast_skill_validated:false,minimum_samples_for_preliminary_metrics:minimumSamples,groups,notes:["Standard forecast products use archive retrieval time because authoritative model initialization time is not exposed; historical Single Runs products use the requested run parameter as issue-time proxy.","Observed windows are exact rolling 24-hour intervals from the Bandar-e-Dayyer SYNOP station, not local Abadan gauge measurements.","No probability calibration or operational policy approval is inferred from these regional-proxy scores."]};
 }
