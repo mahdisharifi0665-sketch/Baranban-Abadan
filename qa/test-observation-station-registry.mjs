@@ -9,6 +9,7 @@ const ajv=new Ajv2020({allErrors:true,strict:true}); addFormats(ajv);
 const validate=ajv.compile(schema);
 assert.equal(validate(registry),true,JSON.stringify(validate.errors));
 assert.equal(validateObservationStationRegistry(registry).valid,true);
+assert.deepEqual(registry.target,{name:"Abadan",latitude:28.0801523,longitude:51.77113355});
 assert.ok(Math.abs(haversineKm(registry.target,registry.stations[0])-31.7)<1);
 assert.equal(validateObservationStationRegistry({...registry,stations:[{...registry.stations[0],direct_abadan_gauge:true}]}).valid,false);
 assert.equal(validateObservationStationRegistry({...registry,stations:[{...registry.stations[0],operational_ingestion_enabled:true}]}).valid,false);
