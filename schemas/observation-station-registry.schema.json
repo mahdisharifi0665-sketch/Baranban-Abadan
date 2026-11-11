@@ -187,7 +187,8 @@
               "verified_public_daily_archive",
               "verified_public_synop_feed",
               "advertised_wis2_feed_unverified",
-              "manual_reports_only"
+              "manual_reports_only",
+              "verified_public_gridded_archive"
             ]
           },
           "capability": {
