@@ -1,5 +1,5 @@
 const TARGET = Object.freeze({latitude:28.0801523,longitude:51.77113355});
-const ISO_UTC=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?Z$/;
+const ISO_UTC=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?Z?$/;
 function validDate(value){return typeof value==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+"T00:00:00Z"))&&new Date(value+"T00:00:00Z").toISOString().slice(0,10)===value;}
 function iso(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))throw new TypeError("invalid_utc_timestamp");return d.toISOString();}
 export function buildEra5ArchiveUrl({startDate,endDate,latitude=TARGET.latitude,longitude=TARGET.longitude}){
