@@ -89,6 +89,10 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 12
         run: node qa/probe-open-meteo.mjs
+      - name: Probe same-day hourly precipitation forecast for Abdan
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        timeout-minutes: 5
+        run: node qa/probe-open-meteo-same-day.mjs
       - name: Score archived forecasts against complete regional 24-hour observations
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         timeout-minutes: 20
@@ -102,6 +106,15 @@ jobs:
         with:
           name: baranyar-forecast-archive-${{ github.run_id }}
           path: artifacts/forecast-archive/*.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Upload same-day hourly forecast archive (90-day interim retention)
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && hashFiles('artifacts/same-day-forecast/*.json') != ''
+        timeout-minutes: 10
+        uses: actions/upload-artifact@v4
+        with:
+          name: baranyar-same-day-forecast-${{ github.run_id }}
+          path: artifacts/same-day-forecast/*.json
           if-no-files-found: warn
           retention-days: 90
       - name: Upload full historical single-run backtest (90-day interim retention)
